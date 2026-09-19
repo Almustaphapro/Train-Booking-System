@@ -1,0 +1,395 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "mysql"
+}
+
+enum UserRole {
+  PASSENGER
+  ADMIN
+  TICKET_OFFICER
+}
+
+enum UserStatus {
+  ACTIVE
+  SUSPENDED
+  DISABLED
+}
+
+enum RecordStatus {
+  ACTIVE
+  INACTIVE
+}
+
+enum TrainStatus {
+  ACTIVE
+  MAINTENANCE
+  RETIRED
+}
+
+enum SeatClass {
+  ECONOMY
+  BUSINESS
+}
+
+enum SeatStatus {
+  ACTIVE
+  OUT_OF_SERVICE
+}
+
+enum ScheduleStatus {
+  SCHEDULED
+  BOARDING
+  DEPARTED
+  COMPLETED
+  CANCELLED
+}
+
+enum ScheduleSeatStatus {
+  AVAILABLE
+  HELD
+  BOOKED
+}
+
+enum BookingStatus {
+  PENDING
+  CONFIRMED
+  CANCELLED
+  COMPLETED
+  EXPIRED
+}
+
+enum PaymentStatus {
+  PENDING
+  PAID
+  FAILED
+  REFUNDED
+}
+
+enum PaymentMethod {
+  CARD
+  BANK_TRANSFER
+  USSD
+}
+
+enum TicketStatus {
+  VALID
+  USED
+  CANCELLED
+  EXPIRED
+}
+
+enum ScanResult {
+  VALID
+  BOARDED
+  ALREADY_USED
+  INVALID
+  EXPIRED
+  CANCELLED
+  REJECTED
+}
+
+enum FraudType {
+  DUPLICATE_TICKET_USE
+  REPEATED_INVALID_SCANS
+  EXCESSIVE_BOOKING_ATTEMPTS
+  HIGH_CANCELLATION_RATE
+  REPEATED_PAYMENT_FAILURES
+  EXCESSIVE_RESERVATIONS
+  ANOMALY_SCORE
+}
+
+enum FraudSeverity {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
+enum FraudStatus {
+  NEW
+  UNDER_REVIEW
+  RESOLVED
+  DISMISSED
+}
+
+model User {
+  id           String     @id @default(cuid()) @db.VarChar(30)
+  fullName     String     @db.VarChar(150)
+  email        String     @unique @db.VarChar(191)
+  phone        String     @unique @db.VarChar(20)
+  passwordHash String     @db.VarChar(255)
+  role         UserRole   @default(PASSENGER)
+  status       UserStatus @default(ACTIVE)
+  isDemo       Boolean    @default(false)
+  createdAt    DateTime   @default(now()) @db.DateTime(3)
+  updatedAt    DateTime   @updatedAt @db.DateTime(3)
+
+  bookings       Booking[]
+  ticketScans    TicketScanLog[]
+  fraudAlerts    FraudAlert[]    @relation("AlertSubject")
+  reviewedAlerts FraudAlert[]    @relation("AlertReviewer")
+  auditLogs      AuditLog[]
+
+  @@index([role, status])
+  @@index([createdAt])
+}
+
+model Station {
+  id        String       @id @default(cuid()) @db.VarChar(30)
+  name      String       @db.VarChar(150)
+  code      String       @unique @db.VarChar(20)
+  city      String       @db.VarChar(100)
+  state     String       @db.VarChar(100)
+  status    RecordStatus @default(ACTIVE)
+  isDemo    Boolean      @default(false)
+  createdAt DateTime     @default(now()) @db.DateTime(3)
+  updatedAt DateTime     @updatedAt @db.DateTime(3)
+
+  originatingRoutes Route[] @relation("RouteOrigin")
+  arrivingRoutes    Route[] @relation("RouteDestination")
+
+  @@index([city, status])
+}
+
+model Route {
+  id                   String       @id @default(cuid()) @db.VarChar(30)
+  originStationId      String       @db.VarChar(30)
+  destinationStationId String       @db.VarChar(30)
+  distanceKm           Decimal      @db.Decimal(8, 2)
+  estimatedDuration    Int          // Minutes, not a clock time.
+  status               RecordStatus @default(ACTIVE)
+  isDemo               Boolean      @default(false)
+  createdAt            DateTime     @default(now()) @db.DateTime(3)
+  updatedAt            DateTime     @updatedAt @db.DateTime(3)
+
+  originStation      Station    @relation("RouteOrigin", fields: [originStationId], references: [id], onDelete: Restrict, onUpdate: Restrict)
+  destinationStation Station    @relation("RouteDestination", fields: [destinationStationId], references: [id], onDelete: Restrict, onUpdate: Restrict)
+  schedules          Schedule[]
+
+  @@unique([originStationId, destinationStationId])
+  @@index([destinationStationId])
+  @@index([status])
+}
+
+model Train {
+  id        String      @id @default(cuid()) @db.VarChar(30)
+  name      String      @db.VarChar(150)
+  code      String      @unique @db.VarChar(30)
+  capacity  Int
+  status    TrainStatus @default(ACTIVE)
+  isDemo    Boolean     @default(false)
+  createdAt DateTime    @default(now()) @db.DateTime(3)
+  updatedAt DateTime    @updatedAt @db.DateTime(3)
+
+  seats     Seat[]
+  schedules Schedule[]
+
+  @@index([status])
+}
+
+model Seat {
+  id         String     @id @default(cuid()) @db.VarChar(30)
+  trainId    String     @db.VarChar(30)
+  seatNumber String     @db.VarChar(10)
+  seatClass  SeatClass
+  status     SeatStatus @default(ACTIVE)
+  createdAt  DateTime   @default(now()) @db.DateTime(3)
+  updatedAt  DateTime   @updatedAt @db.DateTime(3)
+
+  train         Train          @relation(fields: [trainId], references: [id], onDelete: Restrict, onUpdate: Restrict)
+  scheduleSeats ScheduleSeat[]
+
+  @@unique([trainId, seatNumber])
+  // Composite candidate key enforces that a schedule uses seats on its own train.
+  @@unique([id, trainId])
+  @@index([trainId, seatClass, status])
+}
+
+model Schedule {
+  id           String         @id @default(cuid()) @db.VarChar(30)
+  trainId      String         @db.VarChar(30)
+  routeId      String         @db.VarChar(30)
+  departureTime DateTime      @db.DateTime(3)
+  arrivalTime   DateTime      @db.DateTime(3)
+  fareEconomy   Decimal       @db.Decimal(12, 2)
+  fareBusiness  Decimal       @db.Decimal(12, 2)
+  currency      String        @default("NGN") @db.Char(3)
+  status        ScheduleStatus @default(SCHEDULED)
+  isDemo        Boolean        @default(false)
+  createdAt     DateTime       @default(now()) @db.DateTime(3)
+  updatedAt     DateTime       @updatedAt @db.DateTime(3)
+
+  train         Train          @relation(fields: [trainId], references: [id], onDelete: Restrict, onUpdate: Restrict)
+  route         Route          @relation(fields: [routeId], references: [id], onDelete: Restrict, onUpdate: Restrict)
+  scheduleSeats ScheduleSeat[]
+  bookings      Booking[]
+
+  @@unique([trainId, departureTime])
+  @@unique([id, trainId])
+  @@index([routeId, departureTime, status])
+  @@index([status, departureTime])
+}
+
+model ScheduleSeat {
+  id         String             @id @default(cuid()) @db.VarChar(30)
+  scheduleId String             @db.VarChar(30)
+  seatId     String             @db.VarChar(30)
+  trainId    String             @db.VarChar(30)
+  status     ScheduleSeatStatus @default(AVAILABLE)
+  heldUntil  DateTime?           @db.DateTime(3)
+  createdAt  DateTime            @default(now()) @db.DateTime(3)
+  updatedAt  DateTime            @updatedAt @db.DateTime(3)
+
+  schedule      Schedule  @relation(fields: [scheduleId, trainId], references: [id, trainId], onDelete: Restrict, onUpdate: Restrict)
+  seat          Seat      @relation(fields: [seatId, trainId], references: [id, trainId], onDelete: Restrict, onUpdate: Restrict)
+  bookings      Booking[] @relation("BookingHistory")
+  activeBooking Booking?  @relation("ActiveSeatClaim")
+
+  @@unique([scheduleId, seatId])
+  @@unique([id, scheduleId])
+  @@index([scheduleId, trainId])
+  @@index([seatId, trainId])
+  @@index([scheduleId, status])
+  @@index([status, heldUntil])
+}
+
+model Booking {
+  id                   String        @id @default(cuid()) @db.VarChar(30)
+  bookingReference     String        @unique @db.VarChar(40)
+  userId               String        @db.VarChar(30)
+  scheduleId           String        @db.VarChar(30)
+  scheduleSeatId       String        @db.VarChar(30)
+  // NULL releases the unique claim after cancellation/expiry while retaining history.
+  // A SQL CHECK requires this to equal scheduleSeatId for active bookings.
+  activeScheduleSeatId String?       @unique @db.VarChar(30)
+  amount               Decimal       @db.Decimal(12, 2)
+  currency             String        @default("NGN") @db.Char(3)
+  bookingStatus        BookingStatus @default(PENDING)
+  paymentStatus        PaymentStatus @default(PENDING)
+  createdAt            DateTime      @default(now()) @db.DateTime(3)
+  updatedAt            DateTime      @updatedAt @db.DateTime(3)
+
+  user         User         @relation(fields: [userId], references: [id], onDelete: Restrict, onUpdate: Restrict)
+  schedule     Schedule     @relation(fields: [scheduleId], references: [id], onDelete: Restrict, onUpdate: Restrict)
+  scheduleSeat ScheduleSeat @relation("BookingHistory", fields: [scheduleSeatId, scheduleId], references: [id, scheduleId], onDelete: Restrict, onUpdate: Restrict)
+  activeSeat   ScheduleSeat? @relation("ActiveSeatClaim", fields: [activeScheduleSeatId], references: [id], onDelete: Restrict, onUpdate: Restrict)
+  payments     Payment[]
+  ticket       Ticket?
+  fraudAlerts  FraudAlert[]
+
+  @@index([userId, createdAt])
+  @@index([scheduleId, bookingStatus])
+  @@index([scheduleSeatId, scheduleId])
+  @@index([bookingStatus, createdAt])
+  @@index([paymentStatus, createdAt])
+}
+
+model Payment {
+  id                   String        @id @default(cuid()) @db.VarChar(30)
+  bookingId            String        @db.VarChar(30)
+  transactionReference String        @unique @db.VarChar(60)
+  amount               Decimal       @db.Decimal(12, 2)
+  currency             String        @default("NGN") @db.Char(3)
+  paymentMethod        PaymentMethod
+  status               PaymentStatus @default(PENDING)
+  isDemo               Boolean       @default(false)
+  paidAt               DateTime?     @db.DateTime(3)
+  createdAt            DateTime      @default(now()) @db.DateTime(3)
+  updatedAt            DateTime      @updatedAt @db.DateTime(3)
+
+  booking Booking @relation(fields: [bookingId], references: [id], onDelete: Restrict, onUpdate: Restrict)
+
+  @@index([bookingId, status])
+  @@index([status, createdAt])
+}
+
+model Ticket {
+  id           String       @id @default(cuid()) @db.VarChar(30)
+  bookingId    String       @unique @db.VarChar(30)
+  ticketNumber String       @unique @db.VarChar(40)
+  qrToken      String       @unique @db.VarChar(64)
+  status       TicketStatus @default(VALID)
+  issuedAt     DateTime     @default(now()) @db.DateTime(3)
+  usedAt       DateTime?    @db.DateTime(3)
+  expiresAt    DateTime     @db.DateTime(3)
+  createdAt    DateTime     @default(now()) @db.DateTime(3)
+  updatedAt    DateTime     @updatedAt @db.DateTime(3)
+
+  booking     Booking         @relation(fields: [bookingId], references: [id], onDelete: Restrict, onUpdate: Restrict)
+  scanLogs    TicketScanLog[]
+  fraudAlerts FraudAlert[]
+
+  @@index([status, expiresAt])
+}
+
+model TicketScanLog {
+  id               String     @id @default(cuid()) @db.VarChar(30)
+  ticketId         String?    @db.VarChar(30)
+  officerId        String     @db.VarChar(30)
+  result           ScanResult
+  reason           String?    @db.VarChar(500)
+  tokenFingerprint String?    @db.Char(64) // SHA-256 fingerprint; never the bearer token.
+  ipAddress        String?    @db.VarChar(45)
+  scannedAt        DateTime   @default(now()) @db.DateTime(3)
+  createdAt        DateTime   @default(now()) @db.DateTime(3)
+
+  ticket  Ticket? @relation(fields: [ticketId], references: [id], onDelete: Restrict, onUpdate: Restrict)
+  officer User    @relation(fields: [officerId], references: [id], onDelete: Restrict, onUpdate: Restrict)
+
+  @@index([ticketId, scannedAt])
+  @@index([officerId, scannedAt])
+  @@index([result, scannedAt])
+  @@index([tokenFingerprint, scannedAt])
+}
+
+model FraudAlert {
+  id          String        @id @default(cuid()) @db.VarChar(30)
+  userId      String?       @db.VarChar(30)
+  bookingId   String?       @db.VarChar(30)
+  ticketId    String?       @db.VarChar(30)
+  type        FraudType
+  severity    FraudSeverity
+  score       Int           @default(0)
+  description String        @db.Text
+  features    Json?
+  status      FraudStatus   @default(NEW)
+  reviewedAt  DateTime?     @db.DateTime(3)
+  reviewedBy  String?       @db.VarChar(30)
+  reviewNotes String?       @db.Text
+  createdAt   DateTime      @default(now()) @db.DateTime(3)
+  updatedAt   DateTime      @updatedAt @db.DateTime(3)
+
+  user     User?    @relation("AlertSubject", fields: [userId], references: [id], onDelete: Restrict, onUpdate: Restrict)
+  booking  Booking? @relation(fields: [bookingId], references: [id], onDelete: Restrict, onUpdate: Restrict)
+  ticket   Ticket?  @relation(fields: [ticketId], references: [id], onDelete: Restrict, onUpdate: Restrict)
+  reviewer User?    @relation("AlertReviewer", fields: [reviewedBy], references: [id], onDelete: Restrict, onUpdate: Restrict)
+
+  @@index([status, severity, createdAt])
+  @@index([userId, createdAt])
+  @@index([bookingId])
+  @@index([ticketId])
+  @@index([reviewedBy])
+  @@index([type, createdAt])
+}
+
+model AuditLog {
+  id         String   @id @default(cuid()) @db.VarChar(30)
+  userId     String?  @db.VarChar(30) // NULL denotes a system operation.
+  action     String   @db.VarChar(100)
+  entityType String   @db.VarChar(50)
+  entityId   String?  @db.VarChar(64)
+  metadata   Json?    // Sanitized context only; no credentials or tokens.
+  ipAddress  String?  @db.VarChar(45)
+  createdAt  DateTime @default(now()) @db.DateTime(3)
+
+  user User? @relation(fields: [userId], references: [id], onDelete: Restrict, onUpdate: Restrict)
+
+  @@index([userId, createdAt])
+  @@index([entityType, entityId])
+  @@index([action, createdAt])
+  @@index([createdAt])
+}
