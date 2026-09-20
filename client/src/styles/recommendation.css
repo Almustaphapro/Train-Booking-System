@@ -1,0 +1,35 @@
+.recommendation-controls { margin-bottom: 1.8rem; padding: 1.3rem 1.5rem; border: 1px solid var(--color-border); border-radius: 1rem; background: white; }
+.preference-heading { display: flex; justify-content: space-between; align-items: center; gap: 1rem; }
+.preference-heading > div { display: flex; align-items: center; gap: .8rem; color: var(--color-primary); }
+.preference-heading h2 { font-size: 1rem; letter-spacing: -.02em; }
+.preference-heading p { color: var(--color-muted); font-size: .75rem; margin-top: .35rem; }
+.preference-heading label { display: block; min-width: 220px; }
+.preference-heading label > span { display: block; font-size: .68rem; color: var(--color-muted); margin-bottom: .25rem; }
+.preference-heading select { width: 100%; background: #fafcf8; border: 1px solid #b5c6b7; border-radius: .5rem; padding: .65rem .8rem; color: var(--color-primary); font-size: .85rem; }
+.recommendation-method { border-top: 1px solid var(--color-border); margin-top: 1rem; padding-top: .8rem; }
+.recommendation-method summary, .recommendation-breakdown summary { color: var(--color-primary); font-size: .75rem; cursor: pointer; }
+.recommendation-method p, .recommendation-breakdown p { font-size: .75rem; color: var(--color-muted); margin-top: .8rem; line-height: 1.8; }
+.recommendation-method ul { padding: 0; list-style: none; display: grid; grid-template-columns: repeat(4,minmax(0,1fr)); gap: .75rem; margin-block: 1rem; }
+.recommendation-method li { display: flex; justify-content: space-between; gap: .5rem; background: var(--color-tint); padding: .7rem; border-radius: .5rem; font-size: .7rem; }
+.journey-recommendation { padding: 1.2rem 1.6rem; border-top: 1px solid var(--color-border); background: #fafbf8; }
+.journey-recommendation.recommended { background: #eef5ea; border-top-color: #d1e3c9; }
+.recommendation-heading { display: flex; justify-content: space-between; align-items: center; gap: 1rem; }
+.recommendation-label { display: inline-flex; align-items: center; gap: .4rem; font-size: .85rem; font-weight: 600; color: var(--color-primary); }
+.recommendation-rank { display: block; margin-top: .2rem; font-size: .65rem; color: var(--color-muted); }
+.recommendation-score { flex-shrink: 0; text-align: right; }
+.recommendation-score strong { font-size: 1.35rem; color: var(--color-primary); letter-spacing: -.03em; }
+.recommendation-score small { font-size: .72rem; font-weight: 400; margin-left: .2rem; }
+.recommendation-score > span { display: block; color: var(--color-muted); font-size: .6rem; }
+.recommendation-explanation, .journey-recommendation.unavailable p { color: var(--color-muted); font-size: .77rem; line-height: 1.8; margin-top: .8rem; }
+.journey-recommendation.unavailable { padding-block: .85rem; }
+.journey-recommendation.unavailable p { margin: 0; }
+.recommendation-badges { display: flex; gap: .4rem; flex-wrap: wrap; margin-top: .8rem; }
+.recommendation-badges > span { border: 1px solid #cbdac5; background: #fff; border-radius: 2rem; padding: .2rem .6rem; font-size: .62rem; color: var(--color-primary); }
+.recommendation-breakdown { margin-top: .9rem; }
+.score-table-wrap { overflow-x: auto; }
+.recommendation-breakdown table { width: 100%; border-collapse: collapse; text-align: left; font-size: .68rem; margin-top: .8rem; }
+.recommendation-breakdown caption { text-align: left; color: var(--color-muted); font-size: .67rem; padding-bottom: .4rem; }
+.recommendation-breakdown td, .recommendation-breakdown th { padding: .6rem .5rem; border-bottom: 1px solid #dce5d6; }
+.recommendation-breakdown th { font-weight: 600; }
+@media (max-width: 720px) { .preference-heading { flex-direction: column; align-items: stretch; } .recommendation-method ul { grid-template-columns: 1fr 1fr; } .recommendation-controls { padding: 1.2rem; } .journey-recommendation { padding: 1.1rem; } }
+@media (max-width: 380px) { .recommendation-method ul { grid-template-columns: 1fr; } .recommendation-heading { align-items: flex-start; gap: .6rem; } .recommendation-label { font-size: .77rem; } .recommendation-score strong { font-size: 1.2rem; } }

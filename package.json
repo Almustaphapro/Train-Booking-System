@@ -17,6 +17,9 @@
     "db:verify": "npm run db:verify --workspace server",
     "test:db": "npm run test:db --workspace server",
     "test:auth": "npm run test:auth --workspace server",
+    "test:admin": "npm run test:admin --workspace server",
+    "test:search": "npm run test:search --workspace server",
+    "test:recommendation": "npm run test:recommendation --workspace server",
     "auth:secret": "npm run auth:secret --workspace server"
   },
   "overrides": {

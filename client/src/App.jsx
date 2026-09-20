@@ -1,6 +1,7 @@
 import { Route, Routes } from 'react-router';
 import PublicLayout from './layouts/PublicLayout.jsx';
 import HomePage from './pages/public/HomePage.jsx';
+import SearchResultsPage from './pages/public/SearchResultsPage.jsx';
 import StatusPage from './pages/public/StatusPage.jsx';
 import NotFoundPage from './pages/public/NotFoundPage.jsx';
 import { AuthProvider } from './context/AuthContext.jsx';
@@ -10,6 +11,8 @@ import RegisterPage from './pages/public/RegisterPage.jsx';
 import UnauthorizedPage from './pages/public/UnauthorizedPage.jsx';
 import PassengerDashboard from './pages/passenger/PassengerDashboard.jsx';
 import AdminDashboard from './pages/admin/AdminDashboard.jsx';
+import AdminLayout from './layouts/AdminLayout.jsx';
+import ManagementPage from './pages/admin/ManagementPage.jsx';
 import OfficerDashboard from './pages/officer/OfficerDashboard.jsx';
 
 export default function App() {
@@ -17,6 +20,7 @@ export default function App() {
     <AuthProvider><Routes>
       <Route element={<PublicLayout />}>
         <Route index element={<HomePage />} />
+        <Route path="search" element={<SearchResultsPage />} />
         <Route path="status" element={<StatusPage />} />
         <Route element={<GuestRoute />}>
           <Route path="login" element={<LoginPage />} />
@@ -24,7 +28,11 @@ export default function App() {
         </Route>
         <Route path="unauthorized" element={<UnauthorizedPage />} />
         <Route element={<ProtectedRoute role="PASSENGER" />}><Route path="passenger/dashboard" element={<PassengerDashboard />} /></Route>
-        <Route element={<ProtectedRoute role="ADMIN" />}><Route path="admin/dashboard" element={<AdminDashboard />} /></Route>
+        <Route element={<ProtectedRoute role="ADMIN" />}><Route path="admin" element={<AdminLayout />}>
+          <Route index element={<AdminDashboard />} />
+          <Route path="dashboard" element={<AdminDashboard />} />
+          {['stations', 'routes', 'trains', 'seats', 'schedules'].map(resource => <Route key={resource} path={resource} element={<ManagementPage key={resource} resource={resource} />} />)}
+        </Route></Route>
         <Route element={<ProtectedRoute role="TICKET_OFFICER" />}><Route path="officer/dashboard" element={<OfficerDashboard />} /></Route>
         <Route path="*" element={<NotFoundPage />} />
       </Route>

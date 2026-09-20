@@ -1,48 +1,35 @@
 import { Link } from 'react-router';
-import { ArrowRight, Route, Ticket, TrainFront, Users } from 'lucide-react';
+import { ArrowRight, Clock3, ShieldCheck, Ticket, TrainFront, MapPin, Armchair, ScanLine, Search, Eye } from 'lucide-react';
+import TrainSearchForm from '../../components/passenger/TrainSearchForm.jsx';
+import RailIllustration from '../../components/passenger/RailIllustration.jsx';
+import { usePublicData } from '../../hooks/usePublicData.js';
+import { duration, fare, travelDate } from '../../utils/journeys.js';
 
-const plannedFeatures = [
-  { icon: Route, title: 'Find your journey', description: 'Explore routes and compare travel options in one place.' },
-  { icon: Ticket, title: 'Travel with confidence', description: 'A clear booking experience with verifiable digital tickets.' },
-  { icon: Users, title: 'Keep everyone connected', description: 'Dedicated tools for passengers, administrators and ticket officers.' },
+const questions = [
+  ['Are these official Nigerian Railway Corporation schedules?', 'No. RailConnect is a university demonstration project. Demo routes, schedules and fares are clearly labelled and are not official Nigerian Railway Corporation information.'],
+  ['Can I book a seat or pay for a ticket here?', 'You can explore schedules and compare fares now. Seat selection, booking, payments and ticket issuance will be introduced in later phases. No seats are reserved by searching.'],
+  ['Which timezone is used for departures?', 'All passenger travel dates, departure times and arrival times use Nigerian time: West Africa Time (Africa/Lagos, UTC+01:00), wherever you are browsing from.'],
+  ['Why might my search return no trains?', 'There may be no scheduled journey for that direction and date. Cancelled or already-departed journeys and inactive trains or routes are excluded. Try another date or reverse the stations.'],
+  ['Do I need an account to search?', 'No. Stations, routes and train search are public. You can create a passenger account separately, and browse without signing in.'],
 ];
 
 export default function HomePage() {
-  return (
-    <div className="container home-page">
-      <section className="hero" aria-labelledby="home-title">
-        <div className="hero-copy">
-          <span className="eyebrow"><span className="small-line" /> BUILT FOR THE JOURNEY AHEAD</span>
-          <h1 id="home-title">A simpler way<br />to move <span className="text-primary">forward.</span></h1>
-          <p className="hero-description">The foundation for a connected rail experience. Bringing train travel, ticketing and journey management together.</p>
-          <Link className="button button-primary" to="/status">Check service status <ArrowRight size={18} aria-hidden="true" /></Link>
-          <p className="hero-note">Account access is available. Booking and ticketing are still in development.</p>
-        </div>
-        <div className="journey-art" aria-hidden="true">
-          <div className="art-grid" />
-          <div className="art-label">RAILCONNECT <span>01 / FOUNDATION</span></div>
-          <div className="rail-line rail-line-one" /><div className="rail-line rail-line-two" />
-          <div className="art-station station-start"><span /> A connected beginning</div>
-          <div className="train-tile"><TrainFront size={62} strokeWidth={1.3} /></div>
-          <div className="art-station station-end"><span /> A journey ahead</div>
-          <div className="art-caption">Thoughtfully connected.<br /><strong>One step at a time.</strong></div>
-          <span className="art-number">RC / 001</span>
-        </div>
-      </section>
-      <section className="future-section" aria-labelledby="future-title">
-        <div className="section-heading">
-          <div><span className="eyebrow">THE PLATFORM VISION</span><h2 id="future-title">One platform. Every part of the journey.</h2></div>
-          <span className="badge">Planned for future phases</span>
-        </div>
-        <div className="feature-grid">
-          {plannedFeatures.map(({ icon: Icon, title, description }, index) => (
-            <article className="feature-card" key={title}>
-              <div className="feature-top"><Icon size={24} aria-hidden="true" /><span>0{index + 1}</span></div>
-              <h3>{title}</h3><p>{description}</p>
-            </article>
-          ))}
-        </div>
-      </section>
-    </div>
-  );
+  const routes = usePublicData('/routes/popular');
+  return <div className="rail-home">
+    <section className="rail-hero" aria-labelledby="home-title"><div className="container rail-hero-inner">
+      <div className="rail-hero-copy"><span className="eyebrow"><span className="small-line" /> NIGERIA, ONE JOURNEY AT A TIME</span><h1 id="home-title">Your next stop<br />starts <em>here.</em></h1><p>Less searching. More looking forward.<br />Explore train journeys, compare fares, and find a route that fits your day.</p><a href="#train-search" className="hero-explore">Find your journey <ArrowRight size={18} aria-hidden="true" /></a><span className="hero-demo-label">University demonstration · Explore schedules now</span></div>
+      <div className="hero-visual"><RailIllustration /><span className="hero-visual-caption"><TrainFront size={17} aria-hidden="true" /> A new perspective on every journey.</span></div>
+    </div></section>
+    <div className="container search-overlap" id="train-search"><div className="search-card"><div className="search-card-heading"><span><TrainFront size={20} aria-hidden="true" />Where are you heading?</span><small>One way · Nigerian time (WAT)</small></div><TrainSearchForm /><p className="search-disclaimer">Demo schedules and fares are not official NRC data. Booking and payments are not yet available.</p></div></div>
+    <section className="container public-section" id="popular-routes" aria-labelledby="popular-heading"><div className="section-heading"><div><span className="eyebrow">PLACES TO LOOK FORWARD TO</span><h2 id="popular-heading">Popular demo routes</h2><p className="section-intro">A few connections to start exploring. Each direction is its own journey.</p></div><Link className="text-link" to="/search">Explore train schedules <ArrowRight size={17} aria-hidden="true" /></Link></div>
+      {routes.loading ? <p className="public-state" role="status">Loading demo routes…</p> : routes.error ? <div className="public-state" role="alert"><p>{routes.error}</p><button className="button button-outline" onClick={routes.retry}>Try again</button></div> : !routes.data.length ? <p className="public-state">Demo routes are being prepared. Use the station search to explore available journeys.</p> : <div className="popular-route-grid">{routes.data.map((route, index) => <article className={`popular-route route-tone-${index % 3}`} key={route.id}>
+        <div className="route-card-art" aria-hidden="true"><div className="route-orbit"/><MapPin size={34} strokeWidth={1.3}/><span>{String(index + 1).padStart(2, '0')} / DISCOVER</span><TrainFront size={51} strokeWidth={1.2}/></div>
+        <div className="route-card-body"><span className="badge">Demonstration route</span><h3>{route.originStation.city} <ArrowRight size={18} aria-hidden="true" /> {route.destinationStation.city}</h3><p>{route.originStation.name} → {route.destinationStation.name}</p><div className="route-facts"><span><Clock3 size={14} aria-hidden="true" />{duration(route.estimatedDuration)}</span><span>{route.distanceKm} km</span></div><div className="route-card-bottom"><div><small>{route.economyFare !== null ? 'Next demo departure · Economy' : 'Upcoming departure'}</small><strong>{route.economyFare !== null ? fare(route.economyFare, route.currency) : 'Check dates'}</strong></div><Link aria-label={`Explore ${route.originStation.name} to ${route.destinationStation.name}`} to={`/search?${new URLSearchParams({ originId: route.originStation.id, destinationId: route.destinationStation.id, date: route.nextDeparture ? travelDate(route.nextDeparture) : travelDate() })}`}><ArrowRight size={20} /></Link></div></div>
+      </article>)}</div>}
+    </section>
+    <section className="how-section" id="how-it-works" aria-labelledby="how-heading"><div className="container public-section"><div className="center-heading"><span className="eyebrow">A LITTLE PLANNING. A BETTER JOURNEY.</span><h2 id="how-heading">Find your way in three simple steps</h2></div><div className="how-grid">{[[Search, '01', 'Choose your journey', 'Select your departure station, destination and travel date.'], [Eye, '02', 'See the possibilities', 'Compare departure times, seat availability and fares from the latest schedule records.'], [TrainFront, '03', 'Plan what comes next', 'Find a journey that suits you. Seat selection and booking are coming in a later phase.']].map(([Icon, step, title, copy]) => <article key={step}><div className="step-icon"><Icon size={25} aria-hidden="true"/><span>{step}</span></div><h3>{title}</h3><p>{copy}</p></article>)}</div></div></section>
+    <section className="container public-section secure-section" aria-labelledby="secure-heading"><div className="ticket-preview" aria-hidden="true"><div className="preview-ticket"><span className="eyebrow">RAILCONNECT / A LOOK AHEAD</span><Ticket size={34}/><strong>Your journey.<br />Your digital ticket.</strong><div className="ticket-dashes"/><div className="ticket-preview-bottom"><ScanLine size={60} strokeWidth={1.2}/><span>Ticket preview<br /><b>Not valid for travel</b></span></div></div><span className="ticket-decoration"><ShieldCheck size={28}/></span></div><div><span className="eyebrow">SECURE TICKETING, TAKING SHAPE</span><h2 id="secure-heading">Confidence at every step.</h2><p className="section-intro">Your account already has protected access. The next stages will bring booking and verifiable digital tickets into the same experience.</p><ul className="security-points"><li><ShieldCheck size={21} aria-hidden="true"/><div><strong>Protected account access</strong><p>Sign in securely to your own passenger dashboard.</p></div></li><li><ScanLine size={21} aria-hidden="true"/><div><strong>Digital ticket verification — planned</strong><p>QR tickets and officer verification will follow in later phases.</p></div></li></ul><Link className="text-link" to="/register">Create your passenger account <ArrowRight size={17}/></Link></div></section>
+    <section className="container public-section why-section" aria-labelledby="why-heading"><div className="section-heading"><div><span className="eyebrow">DESIGNED AROUND YOUR JOURNEY</span><h2 id="why-heading">Why choose RailConnect?</h2></div><p className="section-intro">The details you need.<br />Room to look forward.</p></div><div className="why-grid">{[[Clock3, 'Clear travel times', 'Departure, arrival and duration together, all in Nigerian time.'], [Armchair, 'See your options', 'Compare Economy and Business fares with current available-seat counts.'], [MapPin, 'A connected view', 'Explore station-to-station journeys without switching between scattered timetables.']].map(([Icon, title, copy]) => <article key={title}><Icon size={26} aria-hidden="true"/><h3>{title}</h3><p>{copy}</p></article>)}</div></section>
+    <section className="container public-section faq-section" id="faq" aria-labelledby="faq-heading"><div><span className="eyebrow">A FEW THINGS TO KNOW</span><h2 id="faq-heading">Before you<br />set off.</h2><p className="section-intro">Answers for your first<br />RailConnect journey.</p></div><div className="faq-list">{questions.map(([question, answer]) => <details key={question}><summary>{question}<span aria-hidden="true">+</span></summary><p>{answer}</p></details>)}</div></section>
+  </div>;
 }

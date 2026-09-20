@@ -2,15 +2,21 @@
 
 University project: **Design and Implementation of a Secure and Intelligent Web-Based Train Transportation Booking and Management System**.
 
-## Current scope: Phases 1, 2 and 3
+## Current scope: Phases 1–6
 
-The frontend and backend foundation is implemented. The frontend has a responsive overview, a live service-status page and a not-found page. The backend exposes a health endpoint with consistent JSON responses, restricted CORS, environment validation and centralized error handling.
+The frontend and backend foundation is implemented. The frontend now has a responsive railway homepage, public train search, a live service-status page and a not-found page. The backend uses consistent JSON responses, restricted CORS, environment validation and centralized error handling.
 
 Phase 2 adds the complete Prisma/MySQL schema, migrations, demonstration seed data and database integrity tests. See the [database guide](server/prisma/README.md) for setup, commands, relationship explanations and an ER diagram.
 
 Phase 3 adds passenger registration, login/logout, JWT cookies, revocable database sessions, backend role authorization, protected frontend routes and three basic role dashboards. See the [authentication guide](docs/authentication.md) for setup, endpoints, security choices and tests.
 
-Train search, booking/payment/ticket workflows, recommendations and fraud detection are **not implemented yet**. Phase 4 has not started. The database's demo schedules and fares are not official Nigerian Railway Corporation data.
+Phase 4 adds the admin management workspace: stations, routes, trains, seats and schedules, with search, filters, pagination, forms, confirmations and audited CRUD APIs. Schedule seats are created automatically. See the [admin management guide](docs/admin-management.md) for usage, API contracts and integrity rules.
+
+Phase 5 adds the passenger-facing website and database-backed `GET /api/schedules/search`. Visitors can choose stations and a date, compare train times and fares, and see current available-seat counts without signing in. See the [public website and search guide](docs/public-search.md).
+
+Phase 6 adds explainable train recommendations: five preferences, normalized weighted scores, strengths badges and a visible calculation breakdown. Best Overall balances price (35%), departure (20%), duration (20%) and availability (25%). See the [recommendation guide](docs/recommendations.md) for the model, worked example and tests.
+
+Booking/payment/ticket workflows and fraud detection are **not implemented yet**. Phase 7 has not started. The database's demo schedules and fares are not official Nigerian Railway Corporation data.
 
 ## Prerequisites
 
@@ -58,6 +64,7 @@ npm.cmd run dev:client
 ```
 
 - Frontend: http://localhost:5173
+- Public train search: http://localhost:5173/search
 - Service status: http://localhost:5173/status
 - API health: http://localhost:5000/api/health
 
@@ -140,7 +147,7 @@ Empty future-phase directories contain `.gitkeep` files so the agreed structure 
 
 The request flow is **React page → Axios → Express middleware → controller/service → Prisma → MySQL**. React Router provides public pages, `/login`, `/register`, `/unauthorized` and protected `/passenger/dashboard`, `/admin/dashboard`, `/officer/dashboard` routes. The shared Axios client has an API base URL and a 10-second timeout. The status hook cancels obsolete requests, supports retry, and handles loading, success and failure.
 
-The CSS system defines colors, spacing, border radii, typography and surfaces centrally in `tokens.css`. Shared layout and component classes live in `global.css`, with keyboard focus indicators, a skip link, responsive breakpoints and accessible status announcements. Icons use Lucide; the decorative rail artwork is CSS.
+The CSS system defines colors, spacing, border radii, typography and surfaces centrally in `tokens.css`. Shared layout and component classes live in `global.css`, with keyboard focus indicators, a skip link, responsive breakpoints and accessible status announcements. Icons use Lucide; the decorative rail artwork is an original SVG component.
 
 ## Dependencies
 
@@ -171,7 +178,7 @@ Exact installed versions are recorded in `package-lock.json`. Root overrides sel
 
 The timestamp and uptime reflect the running process. The endpoint is a liveness check; it does not verify a database or future business services. Responses disable caching.
 
-Unknown endpoints return 404. Disallowed browser origins return 403. Invalid JSON returns 400, oversized bodies return 413, and unexpected errors return 500 without stack traces or internal messages. CORS allows credentials, configured exact origins and GET/HEAD/POST/OPTIONS; requests without `Origin` are permitted for command-line and server clients. Authentication POST requests also require JSON and `X-Requested-With: XMLHttpRequest` and reject cross-site browser requests. CORS does not replace authentication or role authorization.
+Unknown endpoints return 404. Disallowed browser origins return 403. Invalid JSON returns 400, oversized bodies return 413, and unexpected errors return 500 without stack traces or internal messages. CORS allows credentials, configured exact origins and GET/HEAD/POST/PUT/DELETE/OPTIONS; requests without `Origin` are permitted for command-line and server clients. Authentication and admin mutations require JSON and `X-Requested-With: XMLHttpRequest` and reject cross-site browser requests. CORS does not replace authentication or role authorization.
 
 ## Verify
 
@@ -214,7 +221,7 @@ Open http://localhost:4173; keep the backend running. For the backend without fi
 - **Invalid configuration:** the backend stops with a specific variable-validation error before listening.
 - **Package installation:** registry access is required for the initial dependency install; local network policies may require permission.
 
-Phases 1–3 are implemented. Phase 4 has not started. Read the [authentication guide](docs/authentication.md) before deployment, including HTTPS, same-site hosting and rate-limit storage requirements.
+Phases 1–6 are implemented. Phase 7 has not started. Read the [authentication guide](docs/authentication.md) before deployment, including HTTPS, same-site hosting and rate-limit storage requirements. The [admin management guide](docs/admin-management.md), [public search guide](docs/public-search.md) and [recommendation guide](docs/recommendations.md) describe the current interfaces and tests.
 
 Framework references: [Vite guide](https://vite.dev/guide/), [React Router declarative setup](https://reactrouter.com/start/declarative/installation), [Express error handling](https://expressjs.com/en/guide/error-handling/).
 

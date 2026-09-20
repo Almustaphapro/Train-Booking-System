@@ -5,6 +5,9 @@ import App from './App.jsx';
 import './styles/tokens.css';
 import './styles/global.css';
 import './styles/auth.css';
+import './styles/admin.css';
+import './styles/public.css';
+import './styles/recommendation.css';
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>

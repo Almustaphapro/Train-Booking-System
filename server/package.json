@@ -6,8 +6,11 @@
   "scripts": {
     "dev": "node --watch src/server.js",
     "start": "node src/server.js",
-    "test": "node --test tests/foundation.test.js tests/auth-validation.test.js",
+    "test": "node --test tests/foundation.test.js tests/auth-validation.test.js tests/recommendation.test.js",
     "test:auth": "node --test tests/auth.test.js",
+    "test:admin": "node --test tests/admin.test.js",
+    "test:search": "node --test tests/search.test.js",
+    "test:recommendation": "node --test tests/recommendation.integration.test.js",
     "auth:secret": "node scripts/auth-secret.js",
     "db:validate": "prisma validate",
     "db:generate": "prisma generate",

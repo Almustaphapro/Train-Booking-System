@@ -122,7 +122,7 @@ erDiagram
 
 ## Migrations and checks
 
-Three Phase 2 migrations create the domain tables/keys, CHECK constraints and ticket guards. The fourth migration, `20260920000400_auth_sessions`, adds revocable sessions without resetting domain data. **Use migrations, not `prisma db push`**: the Prisma schema cannot express all custom CHECK constraints and triggers.
+Three Phase 2 migrations create the domain tables/keys, CHECK constraints and ticket guards. The fourth migration, `20260920000400_auth_sessions`, adds revocable sessions without resetting domain data. The fifth, `20260920000500_admin_management`, adds `TrainStatus.INACTIVE` and `ScheduleSeatStatus.BLOCKED` for admin deactivation and out-of-service inventory. No tables or records are reset. **Use migrations, not `prisma db push`**: the Prisma schema cannot express all custom CHECK constraints and triggers.
 
 ```powershell
 npm.cmd run db:status --workspace server
@@ -142,7 +142,7 @@ Database tests create fixtures with random identifiers. Ordinary tests roll back
 
 The prepared driver connection is intended for local development. The pinned RSA public key protects password exchange, not all database traffic. A future remote deployment must add verified TLS configuration.
 
-Later services must atomically synchronize booking claims and `ScheduleSeat.status`, expire holds, apply the Phase 3 authorization middleware to new routes, keep capacity aligned with physical seat count, prevent overlapping train journeys, recheck ticket validity on every scan, revoke tickets after cancellation/refund, and protect audit logs. A unique QR column does not itself generate an unpredictable token: the later ticket service must use cryptographic randomness. These workflows are not implemented in Phase 2.
+Phase 4 admin APIs now enforce seat counts within train capacity, prevent overlapping train journeys, synchronize physical seat availability with future scheduled journeys and audit management operations. See the [admin guide](../../docs/admin-management.md). Later booking services must atomically synchronize booking claims and `ScheduleSeat.status`, reject `BLOCKED` inventory, expire holds, apply authorization middleware, recheck ticket validity on every scan, revoke tickets after cancellation/refund, and protect audit logs. A unique QR column does not itself generate an unpredictable token: the later ticket service must use cryptographic randomness.
 
 ## Verified results — 20 September 2026
 

@@ -26,6 +26,7 @@ enum RecordStatus {
 
 enum TrainStatus {
   ACTIVE
+  INACTIVE
   MAINTENANCE
   RETIRED
 }
@@ -52,6 +53,7 @@ enum ScheduleSeatStatus {
   AVAILABLE
   HELD
   BOOKED
+  BLOCKED
 }
 
 enum BookingStatus {
@@ -283,6 +285,7 @@ model Booking {
   currency             String        @default("NGN") @db.Char(3)
   bookingStatus        BookingStatus @default(PENDING)
   paymentStatus        PaymentStatus @default(PENDING)
+  expiresAt            DateTime?     @db.DateTime(3) // Snapshot of this reservation's hold deadline.
   createdAt            DateTime      @default(now()) @db.DateTime(3)
   updatedAt            DateTime      @updatedAt @db.DateTime(3)
 

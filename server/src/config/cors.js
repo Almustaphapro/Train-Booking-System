@@ -8,6 +8,6 @@ export const corsOptions = {
     return callback(new ApiError(403, 'This origin is not allowed.'));
   },
   credentials: true,
-  methods: ['GET', 'HEAD', 'POST', 'OPTIONS'],
+  methods: ['GET', 'HEAD', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Accept', 'X-Requested-With'],
 };

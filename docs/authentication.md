@@ -1,6 +1,6 @@
 # Phase 3 — Authentication and authorization
 
-Passenger registration, email/password login, logout, current-user lookup and role-protected dashboards are implemented. Phase 4 has not started. The dashboards display account information and identify future features; they do not implement booking, payments or ticket operations.
+Passenger registration, email/password login, logout, current-user lookup and role-protected dashboards are implemented. Phase 4 expands the admin dashboard into the [core management workspace](admin-management.md), reusing this authentication. Phase 5 adds [public train search](public-search.md), which does not require login; Phase 6 adds [explainable recommendations](recommendations.md) to that search. Passenger/officer dashboards remain basic account pages. Booking, payments and ticket workflows are not implemented; Phase 7 has not started.
 
 ## Start the existing workspace
 
@@ -76,7 +76,7 @@ Invalid fields produce HTTP 422 with a `fields` map. Duplicate email or normaliz
 | ADMIN | `/admin/dashboard` | `/api/admin/dashboard` |
 | TICKET_OFFICER | `/officer/dashboard` | `/api/officer/dashboard` |
 
-Each role is limited to its own dashboard. There is no implicit administrator override. React guards redirect anonymous visitors to `/login` and wrong-role visitors to `/unauthorized`; Express independently enforces the same permissions. Hiding a frontend link alone would not secure an API.
+Each role is limited to its own dashboard. There is no implicit administrator override. Phase 4 management pages and all their CRUD APIs are ADMIN-only. React guards redirect anonymous visitors to `/login` and wrong-role visitors to `/unauthorized`; Express independently enforces the same permissions. Hiding a frontend link alone would not secure an API.
 
 The frontend loads `/api/auth/me` on startup and rechecks when the window regains focus. Loading and service-error states have explicit UI. Successful logout clears frontend account state; failed logout leaves the account visible with a retry message. Password fields have accessible labels, validation messages and visibility toggles.
 
