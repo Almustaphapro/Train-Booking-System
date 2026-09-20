@@ -6,9 +6,9 @@ export const demoStations = [
 ];
 
 export const demoUsers = [
-  { fullName: 'Demo Administrator', email: 'admin@trainapp.test', phone: '+2340000000001', role: 'ADMIN', passwordVariable: 'DEMO_ADMIN_PASSWORD' },
-  { fullName: 'Demo Ticket Officer', email: 'officer@trainapp.test', phone: '+2340000000002', role: 'TICKET_OFFICER', passwordVariable: 'DEMO_OFFICER_PASSWORD' },
-  { fullName: 'Demo Passenger', email: 'passenger@trainapp.test', phone: '+2340000000003', role: 'PASSENGER', passwordVariable: 'DEMO_PASSENGER_PASSWORD' },
+  { fullName: 'Demo Administrator', email: 'admin@example.com', phone: '+2340000000001', role: 'ADMIN', passwordVariable: 'DEMO_ADMIN_PASSWORD' },
+  { fullName: 'Demo Ticket Officer', email: 'officer@example.com', phone: '+2340000000002', role: 'TICKET_OFFICER', passwordVariable: 'DEMO_OFFICER_PASSWORD' },
+  { fullName: 'Demo Passenger', email: 'passenger1@user.com', phone: '+2340000000003', role: 'PASSENGER', passwordVariable: 'DEMO_PASSENGER_PASSWORD' },
 ];
 
 export const demoTrains = [

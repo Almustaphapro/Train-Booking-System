@@ -98,7 +98,7 @@ test('invalid registration and role injection are rejected at the API', async ()
 });
 
 test('simultaneous duplicate registrations produce one account and one conflict', async () => {
-  const input = { ...registered, email: `race${suffix}`, phone: '+2348077777788' };
+  const input = { ...registered, email: `race${suffix}`, phone: `+8${BigInt(`0x${tag}`).toString().slice(0, 13)}` };
   const results = await Promise.all([request('/auth/register', { body: input }), request('/auth/register', { body: input })]);
   assert.deepEqual(results.map(result => result.response.status).sort(), [201, 409]);
   assert.equal(await db.user.count({ where: { email: input.email } }), 1);

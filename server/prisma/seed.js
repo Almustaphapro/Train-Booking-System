@@ -8,9 +8,10 @@ if (process.env.NODE_ENV === 'production' || process.env.ALLOW_DEMO_SEED !== 'tr
 
 for (const { passwordVariable } of demoUsers) {
   const password = process.env[passwordVariable] ?? '';
-  if (password.length < 12 || Buffer.byteLength(password, 'utf8') > 72 ||
-      !/[a-z]/.test(password) || !/[A-Z]/.test(password) || !/\d/.test(password) || !/[^\w\s]/.test(password)) {
-    throw new Error(`${passwordVariable} must be 12+ characters with upper/lowercase, a number and a symbol, and at most 72 UTF-8 bytes.`);
+  // Non-production demonstration accounts allow simple presentation credentials.
+  // Public registration keeps its separate, stronger password validation.
+  if (password.length < 8 || Buffer.byteLength(password, 'utf8') > 72) {
+    throw new Error(`${passwordVariable} must be 8+ characters and at most 72 UTF-8 bytes for demo seeding.`);
   }
 }
 
@@ -90,8 +91,8 @@ try {
 
   console.info('DEMONSTRATION DATA ONLY — not official Nigerian Railway Corporation schedules, fares or operational data.');
   console.info(`Seed complete. ${result.createdSchedules} schedules created; existing data and passwords preserved.`);
-  console.info('Demo accounts: admin@trainapp.test, officer@trainapp.test, passenger@trainapp.test.');
-  console.info('Passwords come from server/.env. Authentication is not implemented in Phase 2.');
+  console.info(`Demo accounts: ${demoUsers.map(user => user.email).join(', ')}.`);
+  console.info('Passwords come from server/.env. Sign in through the login page.');
 } finally {
   await prisma.$disconnect();
 }

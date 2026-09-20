@@ -2,13 +2,15 @@
 
 University project: **Design and Implementation of a Secure and Intelligent Web-Based Train Transportation Booking and Management System**.
 
-## Current scope: Phases 1 and 2
+## Current scope: Phases 1, 2 and 3
 
 The frontend and backend foundation is implemented. The frontend has a responsive overview, a live service-status page and a not-found page. The backend exposes a health endpoint with consistent JSON responses, restricted CORS, environment validation and centralized error handling.
 
 Phase 2 adds the complete Prisma/MySQL schema, migrations, demonstration seed data and database integrity tests. See the [database guide](server/prisma/README.md) for setup, commands, relationship explanations and an ER diagram.
 
-Authentication, train search, booking/payment/ticket workflows, recommendations and fraud detection are **not implemented yet**. The frontend remains the Phase 1 foundation. The database's demo schedules and fares are not official Nigerian Railway Corporation data.
+Phase 3 adds passenger registration, login/logout, JWT cookies, revocable database sessions, backend role authorization, protected frontend routes and three basic role dashboards. See the [authentication guide](docs/authentication.md) for setup, endpoints, security choices and tests.
+
+Train search, booking/payment/ticket workflows, recommendations and fraud detection are **not implemented yet**. Phase 4 has not started. The database's demo schedules and fares are not official Nigerian Railway Corporation data.
 
 ## Prerequisites
 
@@ -24,9 +26,20 @@ Run from the repository root. The two applications are npm workspaces, with one 
 npm.cmd ci
 Copy-Item client/.env.example client/.env
 Copy-Item server/.env.example server/.env
+npm.cmd run auth:secret
+npm.cmd run db:generate
 ```
 
 Copy the environment examples only on first setup; preserve any existing local settings. Use `npm` in shells where it works normally; `npm.cmd` avoids PowerShell script execution-policy issues on Windows. On macOS/Linux, use `cp` instead of `Copy-Item`.
+
+Start MySQL and apply existing migrations before using account features:
+
+```powershell
+./scripts/mysql.ps1 start
+npm.cmd run db:deploy
+```
+
+For a fresh database, configure the database variables and demonstration accounts using the [database guide](server/prisma/README.md). Preserve existing credentials and data.
 
 ## Run locally
 
@@ -62,7 +75,7 @@ Alternatively, from `client/` or `server/`, run `npm.cmd run dev`.
 | `server/.env` | `PORT` | `5000`; validated integer from 1 to 65535 |
 | `server/.env` | `CLIENT_URL` | Comma-separated exact origins; `http://localhost:5173,http://localhost:4173` |
 
-The root `.env.example` points to the per-application files; root `.env` is not loaded. Backend configuration loads `server/.env` relative to its module, independent of the launch directory. Process environment values take precedence. Local defaults allow the foundation to run even without `.env` files.
+The root `.env.example` points to the per-application files; root `.env` is not loaded. Backend configuration loads `server/.env` relative to its module, independent of the launch directory. Process environment values take precedence. Phase 3 requires a valid `JWT_SECRET` before the backend starts. Run `npm.cmd run auth:secret` to fill a missing secret without printing or replacing an existing one. `JWT_TTL_SECONDS` defaults to 3600 (allowed: 300–86400).
 
 Do not put secrets in `VITE_` variables; Vite includes them in public browser assets. Restart development servers after configuration changes, and rebuild the frontend for changes to production configuration. If you change the API port, update `VITE_API_BASE_URL`. If you change the frontend origin, update `CLIENT_URL` (origins must not end with a slash).
 
@@ -75,7 +88,7 @@ Phase 2 also uses `DATABASE_URL`, `DATABASE_RSA_PUBLIC_KEY_PATH`, `SHADOW_DATABA
 ├── client/
 │   ├── public/
 │   ├── src/
-│   │   ├── api/                 # Shared Axios client and health request
+│   │   ├── api/                 # Credentialed Axios, health and authentication requests
 │   │   ├── assets/
 │   │   ├── components/
 │   │   │   ├── common/
@@ -101,9 +114,9 @@ Phase 2 also uses `DATABASE_URL`, `DATABASE_RSA_PUBLIC_KEY_PATH`, `SHADOW_DATABA
 ├── server/
 │   ├── prisma/                 # Schema, migrations, demo seed and verification
 │   ├── src/
-│   │   ├── config/             # Environment validation and CORS
+│   │   ├── config/             # Environment, database, cookies and CORS
 │   │   ├── controllers/
-│   │   ├── middleware/         # Not-found and centralized errors
+│   │   ├── middleware/         # Authentication, authorization, CSRF and errors
 │   │   ├── routes/
 │   │   ├── services/
 │   │   ├── utils/
@@ -125,7 +138,7 @@ Phase 2 also uses `DATABASE_URL`, `DATABASE_RSA_PUBLIC_KEY_PATH`, `SHADOW_DATABA
 
 Empty future-phase directories contain `.gitkeep` files so the agreed structure survives version control. No future business functionality is scaffolded into working routes.
 
-The request flow is **React page → health hook → Axios → Express route → controller → JSON response**. React Router provides `/`, `/status` and a fallback route. The shared Axios client has an API base URL and a 10-second timeout. The status hook cancels obsolete requests, supports retry, and handles loading, success and failure.
+The request flow is **React page → Axios → Express middleware → controller/service → Prisma → MySQL**. React Router provides public pages, `/login`, `/register`, `/unauthorized` and protected `/passenger/dashboard`, `/admin/dashboard`, `/officer/dashboard` routes. The shared Axios client has an API base URL and a 10-second timeout. The status hook cancels obsolete requests, supports retry, and handles loading, success and failure.
 
 The CSS system defines colors, spacing, border radii, typography and surfaces centrally in `tokens.css`. Shared layout and component classes live in `global.css`, with keyboard focus indicators, a skip link, responsive breakpoints and accessible status announcements. Icons use Lucide; the decorative rail artwork is CSS.
 
@@ -133,11 +146,11 @@ The CSS system defines colors, spacing, border radii, typography and surfaces ce
 
 - Client runtime: `react`, `react-dom`, `react-router`, `axios`, `lucide-react`.
 - Client build tooling: `vite`, `@vitejs/plugin-react`.
-- Server runtime: `express`, `cors`, `dotenv`, `@prisma/client`, `@prisma/adapter-mariadb`, `bcrypt` (demo password hashing).
+- Server runtime: `express`, `cors`, `dotenv`, `@prisma/client`, `@prisma/adapter-mariadb`, `bcrypt`, `cookie-parser`, `express-rate-limit`, `helmet`, `jsonwebtoken`, `zod`.
 - Database tooling: `prisma`.
 - Backend tests and watch mode: built into Node.js; no additional packages.
 
-Exact installed versions are recorded in `package-lock.json`. Root overrides select patched `mariadb`, `deepmerge-ts` and `mysql2` transitive dependencies. Authentication endpoints, QR generation and payment integration are deferred until their phases.
+Exact installed versions are recorded in `package-lock.json`. Root overrides select patched `mariadb`, `deepmerge-ts` and `mysql2` transitive dependencies. QR generation and payment integration remain deferred until their phases.
 
 ## API and error behavior
 
@@ -158,7 +171,7 @@ Exact installed versions are recorded in `package-lock.json`. Root overrides sel
 
 The timestamp and uptime reflect the running process. The endpoint is a liveness check; it does not verify a database or future business services. Responses disable caching.
 
-Unknown endpoints return 404. Disallowed browser origins return 403. Invalid JSON returns 400, oversized bodies return 413, and unexpected errors return 500 without stack traces or internal messages. CORS allows the configured origins and health-check methods; requests without `Origin` are permitted for command-line and server clients. CORS is not authentication. Methods will be expanded when write endpoints are introduced.
+Unknown endpoints return 404. Disallowed browser origins return 403. Invalid JSON returns 400, oversized bodies return 413, and unexpected errors return 500 without stack traces or internal messages. CORS allows credentials, configured exact origins and GET/HEAD/POST/OPTIONS; requests without `Origin` are permitted for command-line and server clients. Authentication POST requests also require JSON and `X-Requested-With: XMLHttpRequest` and reject cross-site browser requests. CORS does not replace authentication or role authorization.
 
 ## Verify
 
@@ -201,7 +214,7 @@ Open http://localhost:4173; keep the backend running. For the backend without fi
 - **Invalid configuration:** the backend stops with a specific variable-validation error before listening.
 - **Package installation:** registry access is required for the initial dependency install; local network policies may require permission.
 
-Phase 2 supplies the relational database and demonstration records. The next phase is **Phase 3 — Authentication**, which has not started. Production security hardening remains later-phase work.
+Phases 1–3 are implemented. Phase 4 has not started. Read the [authentication guide](docs/authentication.md) before deployment, including HTTPS, same-site hosting and rate-limit storage requirements.
 
 Framework references: [Vite guide](https://vite.dev/guide/), [React Router declarative setup](https://reactrouter.com/start/declarative/installation), [Express error handling](https://expressjs.com/en/guide/error-handling/).
 
@@ -274,5 +287,4 @@ server\src\utils\ApiError.js
 server\src\validators\.gitkeep
 server\tests\foundation.test.js
 ```
-#   T r a i n - B o o k i n g - S y s t e m  
- 
+# Train-Booking-System
