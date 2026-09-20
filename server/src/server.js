@@ -15,7 +15,7 @@ server.on('error', (error) => {
 });
 
 function shutdown() {
-  server.close(() => process.exit(0));
+  server.close(async () => { await app.locals.disconnectDatabase(); process.exit(0); });
   setTimeout(() => process.exit(1), 10000).unref();
 }
 

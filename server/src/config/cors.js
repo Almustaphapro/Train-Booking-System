@@ -7,6 +7,7 @@ export const corsOptions = {
     if (!origin || env.clientUrls.includes(origin)) return callback(null, true);
     return callback(new ApiError(403, 'This origin is not allowed.'));
   },
-  methods: ['GET', 'HEAD', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Accept'],
+  credentials: true,
+  methods: ['GET', 'HEAD', 'POST', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Accept', 'X-Requested-With'],
 };

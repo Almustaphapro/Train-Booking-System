@@ -25,5 +25,7 @@ export function errorHandler(error, _request, response, next) {
     console.error('An unexpected API error occurred.');
   }
 
-  return response.status(statusCode).json({ success: false, message });
+  return response.status(statusCode).json({ success: false, message,
+    ...(error instanceof ApiError && error.fields ? { fields: error.fields } : {}),
+  });
 }

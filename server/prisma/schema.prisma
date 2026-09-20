@@ -133,9 +133,22 @@ model User {
   fraudAlerts    FraudAlert[]    @relation("AlertSubject")
   reviewedAlerts FraudAlert[]    @relation("AlertReviewer")
   auditLogs      AuditLog[]
+  authSessions   AuthSession[]
 
   @@index([role, status])
   @@index([createdAt])
+}
+
+model AuthSession {
+  id        String   @id @default(cuid()) @db.VarChar(30)
+  userId    String   @db.VarChar(30)
+  expiresAt DateTime @db.DateTime(3)
+  createdAt DateTime @default(now()) @db.DateTime(3)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Restrict)
+
+  @@index([userId, expiresAt])
+  @@index([expiresAt])
 }
 
 model Station {
@@ -160,7 +173,7 @@ model Route {
   originStationId      String       @db.VarChar(30)
   destinationStationId String       @db.VarChar(30)
   distanceKm           Decimal      @db.Decimal(8, 2)
-  estimatedDuration    Int          // Minutes, not a clock time.
+  estimatedDuration    Int // Minutes, not a clock time.
   status               RecordStatus @default(ACTIVE)
   isDemo               Boolean      @default(false)
   createdAt            DateTime     @default(now()) @db.DateTime(3)
@@ -210,14 +223,14 @@ model Seat {
 }
 
 model Schedule {
-  id           String         @id @default(cuid()) @db.VarChar(30)
-  trainId      String         @db.VarChar(30)
-  routeId      String         @db.VarChar(30)
-  departureTime DateTime      @db.DateTime(3)
-  arrivalTime   DateTime      @db.DateTime(3)
-  fareEconomy   Decimal       @db.Decimal(12, 2)
-  fareBusiness  Decimal       @db.Decimal(12, 2)
-  currency      String        @default("NGN") @db.Char(3)
+  id            String         @id @default(cuid()) @db.VarChar(30)
+  trainId       String         @db.VarChar(30)
+  routeId       String         @db.VarChar(30)
+  departureTime DateTime       @db.DateTime(3)
+  arrivalTime   DateTime       @db.DateTime(3)
+  fareEconomy   Decimal        @db.Decimal(12, 2)
+  fareBusiness  Decimal        @db.Decimal(12, 2)
+  currency      String         @default("NGN") @db.Char(3)
   status        ScheduleStatus @default(SCHEDULED)
   isDemo        Boolean        @default(false)
   createdAt     DateTime       @default(now()) @db.DateTime(3)
@@ -240,9 +253,9 @@ model ScheduleSeat {
   seatId     String             @db.VarChar(30)
   trainId    String             @db.VarChar(30)
   status     ScheduleSeatStatus @default(AVAILABLE)
-  heldUntil  DateTime?           @db.DateTime(3)
-  createdAt  DateTime            @default(now()) @db.DateTime(3)
-  updatedAt  DateTime            @updatedAt @db.DateTime(3)
+  heldUntil  DateTime?          @db.DateTime(3)
+  createdAt  DateTime           @default(now()) @db.DateTime(3)
+  updatedAt  DateTime           @updatedAt @db.DateTime(3)
 
   schedule      Schedule  @relation(fields: [scheduleId, trainId], references: [id, trainId], onDelete: Restrict, onUpdate: Restrict)
   seat          Seat      @relation(fields: [seatId, trainId], references: [id, trainId], onDelete: Restrict, onUpdate: Restrict)
@@ -273,9 +286,9 @@ model Booking {
   createdAt            DateTime      @default(now()) @db.DateTime(3)
   updatedAt            DateTime      @updatedAt @db.DateTime(3)
 
-  user         User         @relation(fields: [userId], references: [id], onDelete: Restrict, onUpdate: Restrict)
-  schedule     Schedule     @relation(fields: [scheduleId], references: [id], onDelete: Restrict, onUpdate: Restrict)
-  scheduleSeat ScheduleSeat @relation("BookingHistory", fields: [scheduleSeatId, scheduleId], references: [id, scheduleId], onDelete: Restrict, onUpdate: Restrict)
+  user         User          @relation(fields: [userId], references: [id], onDelete: Restrict, onUpdate: Restrict)
+  schedule     Schedule      @relation(fields: [scheduleId], references: [id], onDelete: Restrict, onUpdate: Restrict)
+  scheduleSeat ScheduleSeat  @relation("BookingHistory", fields: [scheduleSeatId, scheduleId], references: [id, scheduleId], onDelete: Restrict, onUpdate: Restrict)
   activeSeat   ScheduleSeat? @relation("ActiveSeatClaim", fields: [activeScheduleSeatId], references: [id], onDelete: Restrict, onUpdate: Restrict)
   payments     Payment[]
   ticket       Ticket?
@@ -382,7 +395,7 @@ model AuditLog {
   action     String   @db.VarChar(100)
   entityType String   @db.VarChar(50)
   entityId   String?  @db.VarChar(64)
-  metadata   Json?    // Sanitized context only; no credentials or tokens.
+  metadata   Json? // Sanitized context only; no credentials or tokens.
   ipAddress  String?  @db.VarChar(45)
   createdAt  DateTime @default(now()) @db.DateTime(3)
 

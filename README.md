@@ -2,17 +2,19 @@
 
 University project: **Design and Implementation of a Secure and Intelligent Web-Based Train Transportation Booking and Management System**.
 
-## Current scope: Phase 1
+## Current scope: Phases 1 and 2
 
 The frontend and backend foundation is implemented. The frontend has a responsive overview, a live service-status page and a not-found page. The backend exposes a health endpoint with consistent JSON responses, restricted CORS, environment validation and centralized error handling.
 
-Authentication, train search, bookings, payments, tickets, recommendations, fraud detection and database integration are **not implemented yet**. Future features on the overview are explicitly labelled as planned. No live railway data or invented schedules are displayed.
+Phase 2 adds the complete Prisma/MySQL schema, migrations, demonstration seed data and database integrity tests. See the [database guide](server/prisma/README.md) for setup, commands, relationship explanations and an ER diagram.
+
+Authentication, train search, booking/payment/ticket workflows, recommendations and fraud detection are **not implemented yet**. The frontend remains the Phase 1 foundation. The database's demo schedules and fares are not official Nigerian Railway Corporation data.
 
 ## Prerequisites
 
 - Node.js **24.11 or newer** and npm (verified locally with Node 24.11.1 and npm 11.7.0).
 - A modern browser.
-- MySQL is not required for Phase 1.
+- MySQL 8.4 for database commands. A workspace-local instance is prepared on port 3307; see the database guide for fresh-checkout setup. The Phase 1 frontend and API liveness endpoint can still run without MySQL.
 
 ## Install and configure
 
@@ -62,7 +64,9 @@ Alternatively, from `client/` or `server/`, run `npm.cmd run dev`.
 
 The root `.env.example` points to the per-application files; root `.env` is not loaded. Backend configuration loads `server/.env` relative to its module, independent of the launch directory. Process environment values take precedence. Local defaults allow the foundation to run even without `.env` files.
 
-Do not put secrets in `VITE_` variables; Vite includes them in public browser assets. Restart development servers after configuration changes, and rebuild the frontend for changes to production configuration. If you change the API port, update `VITE_API_BASE_URL`. If you change the frontend origin, update `CLIENT_URL` (origins must not end with a slash). Future phases will introduce database and authentication secrets when needed.
+Do not put secrets in `VITE_` variables; Vite includes them in public browser assets. Restart development servers after configuration changes, and rebuild the frontend for changes to production configuration. If you change the API port, update `VITE_API_BASE_URL`. If you change the frontend origin, update `CLIENT_URL` (origins must not end with a slash).
+
+Phase 2 also uses `DATABASE_URL`, `DATABASE_RSA_PUBLIC_KEY_PATH`, `SHADOW_DATABASE_URL`, `ALLOW_DEMO_SEED`, `DEMO_START_DATE` and three `DEMO_*_PASSWORD` variables in `server/.env`. The [database guide](server/prisma/README.md) covers these and the optional `ALLOW_DB_TESTS` flag. Preserve existing local credentials when updating environment files.
 
 ## Architecture and folders
 
@@ -95,7 +99,7 @@ Do not put secrets in `VITE_` variables; Vite includes them in public browser as
 │   ├── package.json
 │   └── vite.config.js
 ├── server/
-│   ├── prisma/                 # Reserved for Phase 2; see README
+│   ├── prisma/                 # Schema, migrations, demo seed and verification
 │   ├── src/
 │   │   ├── config/             # Environment validation and CORS
 │   │   ├── controllers/
@@ -129,10 +133,11 @@ The CSS system defines colors, spacing, border radii, typography and surfaces ce
 
 - Client runtime: `react`, `react-dom`, `react-router`, `axios`, `lucide-react`.
 - Client build tooling: `vite`, `@vitejs/plugin-react`.
-- Server runtime: `express`, `cors`, `dotenv`.
+- Server runtime: `express`, `cors`, `dotenv`, `@prisma/client`, `@prisma/adapter-mariadb`, `bcrypt` (demo password hashing).
+- Database tooling: `prisma`.
 - Backend tests and watch mode: built into Node.js; no additional packages.
 
-Exact installed versions are recorded in `package-lock.json`. Prisma, authentication, QR and payment packages are deferred until required.
+Exact installed versions are recorded in `package-lock.json`. Root overrides select patched `mariadb`, `deepmerge-ts` and `mysql2` transitive dependencies. Authentication endpoints, QR generation and payment integration are deferred until their phases.
 
 ## API and error behavior
 
@@ -196,11 +201,23 @@ Open http://localhost:4173; keep the backend running. For the backend without fi
 - **Invalid configuration:** the backend stops with a specific variable-validation error before listening.
 - **Package installation:** registry access is required for the initial dependency install; local network policies may require permission.
 
-Next phase: **Phase 2 — Database**, including Prisma/MySQL setup, schema, migrations and seed data. Phase 2 has not begun. There are no database setup commands, demo accounts or credentials yet. Production security hardening and authentication remain later-phase work.
+Phase 2 supplies the relational database and demonstration records. The next phase is **Phase 3 — Authentication**, which has not started. Production security hardening remains later-phase work.
 
 Framework references: [Vite guide](https://vite.dev/guide/), [React Router declarative setup](https://reactrouter.com/start/declarative/installation), [Express error handling](https://expressjs.com/en/guide/error-handling/).
 
-# Phase 1 file inventory
+## Phase 2 files created or updated
+
+- `server/prisma/schema.prisma`: all 13 relational models and enums.
+- `server/prisma/migrations/`: initial schema, 16 CHECK constraints, two ticket guards and the provider lock.
+- `server/prisma/demo-data.js`, `seed.js`, `verify-seed.js`: labelled demonstration fixtures, repeatable seeding and record verification.
+- `server/prisma.config.js`, `server/src/config/database.js`: Prisma configuration and MySQL client creation.
+- `server/tests/database.test.js`: database integrity and concurrency tests.
+- `scripts/mysql.ps1`: start, stop and inspect the isolated local MySQL instance.
+- Root/server `package.json`, `package-lock.json`, `.gitignore`, `server/.env.example`, local ignored `server/.env`, and both README files: dependencies, scripts, configuration and documentation.
+
+The [database guide](server/prisma/README.md) records the passing checks, setup issues resolved and remaining application-phase boundaries. No frontend files were changed in Phase 2.
+
+## Phase 1 file inventory (historical)
 
 The workspace was initially empty. All files below were created during Phase 1; no existing work was overwritten. Local `.env` files are ignored by Git. Build output, installed packages and temporary verification artifacts are excluded.
 

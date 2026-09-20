@@ -3,15 +3,31 @@ import PublicLayout from './layouts/PublicLayout.jsx';
 import HomePage from './pages/public/HomePage.jsx';
 import StatusPage from './pages/public/StatusPage.jsx';
 import NotFoundPage from './pages/public/NotFoundPage.jsx';
+import { AuthProvider } from './context/AuthContext.jsx';
+import { ProtectedRoute, GuestRoute } from './components/common/RouteGuards.jsx';
+import LoginPage from './pages/public/LoginPage.jsx';
+import RegisterPage from './pages/public/RegisterPage.jsx';
+import UnauthorizedPage from './pages/public/UnauthorizedPage.jsx';
+import PassengerDashboard from './pages/passenger/PassengerDashboard.jsx';
+import AdminDashboard from './pages/admin/AdminDashboard.jsx';
+import OfficerDashboard from './pages/officer/OfficerDashboard.jsx';
 
 export default function App() {
   return (
-    <Routes>
+    <AuthProvider><Routes>
       <Route element={<PublicLayout />}>
         <Route index element={<HomePage />} />
         <Route path="status" element={<StatusPage />} />
+        <Route element={<GuestRoute />}>
+          <Route path="login" element={<LoginPage />} />
+          <Route path="register" element={<RegisterPage />} />
+        </Route>
+        <Route path="unauthorized" element={<UnauthorizedPage />} />
+        <Route element={<ProtectedRoute role="PASSENGER" />}><Route path="passenger/dashboard" element={<PassengerDashboard />} /></Route>
+        <Route element={<ProtectedRoute role="ADMIN" />}><Route path="admin/dashboard" element={<AdminDashboard />} /></Route>
+        <Route element={<ProtectedRoute role="TICKET_OFFICER" />}><Route path="officer/dashboard" element={<OfficerDashboard />} /></Route>
         <Route path="*" element={<NotFoundPage />} />
       </Route>
-    </Routes>
+    </Routes></AuthProvider>
   );
 }

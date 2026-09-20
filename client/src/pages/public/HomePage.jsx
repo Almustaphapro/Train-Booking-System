@@ -16,7 +16,7 @@ export default function HomePage() {
           <h1 id="home-title">A simpler way<br />to move <span className="text-primary">forward.</span></h1>
           <p className="hero-description">The foundation for a connected rail experience. Bringing train travel, ticketing and journey management together.</p>
           <Link className="button button-primary" to="/status">Check service status <ArrowRight size={18} aria-hidden="true" /></Link>
-          <p className="hero-note">In development. Passenger services are not available yet.</p>
+          <p className="hero-note">Account access is available. Booking and ticketing are still in development.</p>
         </div>
         <div className="journey-art" aria-hidden="true">
           <div className="art-grid" />
