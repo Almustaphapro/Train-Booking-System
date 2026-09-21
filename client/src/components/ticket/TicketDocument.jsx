@@ -1,8 +1,9 @@
-import { TrainFront, ArrowRight, ShieldCheck } from 'lucide-react';
+import { TrainFront, ArrowRight, ShieldCheck, CheckCircle2, Clock3, XCircle } from 'lucide-react';
 import { fare, journeyDate, journeyTime } from '../../utils/journeys.js';
 
 export function TicketStatus({ status }) {
-  return <span className={`ticket-status ticket-status-${status.toLowerCase()}`}>{status}</span>;
+  const Icon = status === 'VALID' ? CheckCircle2 : status === 'USED' ? CheckCircle2 : status === 'EXPIRED' ? Clock3 : XCircle;
+  return <span className={`ticket-status ticket-status-${status.toLowerCase()}`} aria-label={`Ticket status: ${status}`}><Icon size={14} aria-hidden="true"/>{status}</span>;
 }
 
 export default function TicketDocument({ ticket: t, checkedAt, onQrLoad, onQrError }) {

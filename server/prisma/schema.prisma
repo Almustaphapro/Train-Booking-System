@@ -303,6 +303,7 @@ model Booking {
   @@index([scheduleSeatId, scheduleId])
   @@index([bookingStatus, createdAt])
   @@index([paymentStatus, createdAt])
+  @@index([createdAt])
 }
 
 model Payment {
@@ -327,6 +328,7 @@ model Payment {
 
   @@index([bookingId, status])
   @@index([status, createdAt])
+  @@index([status, paidAt])
 }
 
 model Ticket {
@@ -376,6 +378,7 @@ model FraudAlert {
   userId      String?       @db.VarChar(30)
   bookingId   String?       @db.VarChar(30)
   ticketId    String?       @db.VarChar(30)
+  dedupeKey   String?       @unique @db.VarChar(191) // Rule/event identity; old alerts may be NULL.
   type        FraudType
   severity    FraudSeverity
   score       Int           @default(0)
@@ -394,7 +397,9 @@ model FraudAlert {
   reviewer User?    @relation("AlertReviewer", fields: [reviewedBy], references: [id], onDelete: Restrict, onUpdate: Restrict)
 
   @@index([status, severity, createdAt])
+  @@index([createdAt])
   @@index([userId, createdAt])
+  @@index([userId, type, createdAt])
   @@index([bookingId])
   @@index([ticketId])
   @@index([reviewedBy])
@@ -414,7 +419,9 @@ model AuditLog {
   user User? @relation(fields: [userId], references: [id], onDelete: Restrict, onUpdate: Restrict)
 
   @@index([userId, createdAt])
+  @@index([userId, action, createdAt])
   @@index([entityType, entityId])
+  @@index([entityType, entityId, createdAt])
   @@index([action, createdAt])
   @@index([createdAt])
 }

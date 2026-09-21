@@ -5,7 +5,7 @@ export function useBookingData(path, pollMs = 15000) {
   const [data, setData] = useState(null), [loading, setLoading] = useState(true), [error, setError] = useState(''), [attempt, setAttempt] = useState(0);
   useEffect(() => {
     const controller = new AbortController(); let timer;
-    setData(null); setLoading(true); setError('');
+    setLoading(true); setError('');
     async function load() {
       try {
         const response = await apiClient.get(path, { signal: controller.signal });
@@ -19,5 +19,5 @@ export function useBookingData(path, pollMs = 15000) {
     load();
     return () => { controller.abort(); clearTimeout(timer); };
   }, [path, attempt, pollMs]);
-  return { data, loading, error, refresh: () => setAttempt(value => value + 1) };
+  return { data, loading, refreshing: loading && Boolean(data), error, refresh: () => setAttempt(value => value + 1) };
 }

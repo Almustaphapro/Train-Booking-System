@@ -11,7 +11,7 @@ export function createAuthRouter(getDatabase, config, rateLimits) {
   const limiters = createAuthLimiters(rateLimits);
   router.use((_request, response, next) => { response.set('Cache-Control', 'no-store'); next(); });
   router.post('/register', authMutationGuard, limiters.register, validateBody(registrationSchema), controller.register);
-  router.post('/login', authMutationGuard, limiters.login, validateBody(loginSchema), controller.login);
+  router.post('/login', authMutationGuard, ...limiters.login, validateBody(loginSchema), controller.login);
   router.post('/logout', authMutationGuard, controller.logout);
   router.get('/me', authenticate(getDatabase, config), controller.me);
   return router;

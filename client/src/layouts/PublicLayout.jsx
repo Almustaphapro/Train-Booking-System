@@ -30,7 +30,7 @@ export default function PublicLayout() {
         <div className="container public-footer"><div><Brand /><p>Every journey starts with a connection.<br />Find yours with RailConnect.</p></div><div><h2>Explore</h2><Link to="/search">Find a train</Link><Link to="/#popular-routes">Demo routes</Link><Link to="/#faq">Frequently asked questions</Link></div><div><h2>Your account</h2><Link to="/login">Sign in</Link><Link to="/register">Create an account</Link><Link to="/status">Service status</Link></div></div>
         <div className="container footer-inner">
           <span>RailConnect <span className="footer-divider">/</span> A better journey starts here.</span>
-          <span>University demonstration project</span>
+        
         </div>
       </footer>
     </div>

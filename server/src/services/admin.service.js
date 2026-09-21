@@ -124,7 +124,8 @@ export async function saveRecord(db, resource, id, input, actorId) {
       if (!old) await tx.scheduleSeat.createMany({ data: schedules.map(schedule => ({ scheduleId: schedule.id, seatId: row.id, trainId: row.trainId, status: row.status === 'ACTIVE' ? 'AVAILABLE' : 'BLOCKED' })) });
       else if (old.status !== row.status) await tx.scheduleSeat.updateMany({ where: { seatId: row.id, scheduleId: { in: schedules.map(schedule => schedule.id) }, status: { in: ['AVAILABLE', 'BLOCKED'] } }, data: { status: row.status === 'ACTIVE' ? 'AVAILABLE' : 'BLOCKED' } });
     }
-    await tx.auditLog.create({ data: { userId: actorId, action: `ADMIN_${old ? 'UPDATE' : 'CREATE'}_${model.toUpperCase()}`, entityType: model, entityId: row.id } });
+    await tx.auditLog.create({ data: { userId: actorId, action: `ADMIN_${old ? 'UPDATE' : 'CREATE'}_${model.toUpperCase()}`, entityType: model, entityId: row.id,
+      metadata: { changedFields: Object.keys(input), ...(old ? { fromStatus: old.status } : {}), toStatus: row.status } } });
     return getRecord(tx, resource, row.id);
   });
 }

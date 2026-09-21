@@ -46,6 +46,7 @@ after(async () => {
     const bookings = await tx.booking.findMany({ where: { userId: { in: users.map(row => row.id) } }, select: { id: true } });
     const paymentIds = (await tx.payment.findMany({ where: { bookingId: { in: bookings.map(row => row.id) } }, select: { id: true } })).map(row => row.id);
     const ticketIds = (await tx.ticket.findMany({ where: { bookingId: { in: bookings.map(row => row.id) } }, select: { id: true } })).map(row => row.id);
+    await tx.fraudAlert.deleteMany({ where: { userId: { in: users.map(row => row.id) } } });
     await tx.auditLog.deleteMany({ where: { OR: [{ entityType: 'Payment', entityId: { in: paymentIds } }, { entityType: 'Ticket', entityId: { in: ticketIds } }] } });
     await tx.auditLog.deleteMany({ where: { OR: [{ userId: { in: users.map(row => row.id) } }, { entityType: 'Booking', entityId: { in: bookings.map(row => row.id) } }] } });
     await tx.ticket.deleteMany({ where: { bookingId: { in: bookings.map(row => row.id) } } });

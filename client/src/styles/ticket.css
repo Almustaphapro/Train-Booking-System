@@ -6,7 +6,7 @@
 .ticket-masthead { display: flex; align-items: center; justify-content: space-between; gap: 1rem; background: #125c46; color: #fff; padding: 1.8rem 2rem; }
 .ticket-brand { display: flex; align-items: center; gap: .65rem; font-size: 1.65rem; font-weight: 750; letter-spacing: -.05em; }
 .ticket-masthead p { font-size: .65rem; letter-spacing: .17em; margin: .6rem 0 0; color: #d4e7de; }
-.ticket-status { display: inline-flex; width: fit-content; align-items: center; font-size: .7rem; font-weight: 800; letter-spacing: .07em; padding: .4rem .7rem; border-radius: 5px; background: #e8eee9; color: #394a41; white-space: nowrap; }
+.ticket-status { display: inline-flex; width: fit-content; align-items: center; gap: .35rem; font-size: .7rem; font-weight: 800; letter-spacing: .07em; padding: .4rem .7rem; border-radius: 5px; background: #e8eee9; color: #394a41; white-space: nowrap; }
 .ticket-status-valid { color: #125c46; background: #e1f3e9; }
 .ticket-status-cancelled { color: #923d31; background: #fce9e6; }
 .ticket-status-expired { color: #75521c; background: #fff1d8; }
@@ -68,6 +68,11 @@
   .ticket-toolbar > div { width: 100%; }
   .ticket-toolbar button { flex: 1; padding-inline: .65rem; font-size: .8rem; }
   .ticket-details dd { font-size: .8rem; }
+}
+@media (max-width: 380px) {
+  .ticket-details { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .ticket-passenger { grid-column: 1 / -1; }
+  .ticket-journey { grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); }
 }
 @media print {
   @page { size: A4; margin: 10mm; }

@@ -1,0 +1,15 @@
+import { useState } from 'react';
+import { useBookingData } from '../../hooks/useBookingData.js';
+import { Badge, LoadState, Pager, human, when, queryString } from '../../components/admin/MonitoringUI.jsx';
+
+const initial = { action: '', entityType: '', actorRole: '', from: '', to: '' };
+export default function AuditLogsPage() {
+  const [filters, setFilters] = useState(initial), [applied, setApplied] = useState(initial), [page, setPage] = useState(1);
+  const state = useBookingData(`/admin/audit-logs?${queryString({ ...applied, page })}`, 0), data = state.data;
+  const change = event => setFilters({ ...filters, [event.target.name]: event.target.value });
+  return <><div className="admin-heading"><div><span className="eyebrow">ACCOUNTABILITY</span><h1>Audit logs</h1><p>Trace important administrative actions without exposing credentials or authentication secrets.</p></div><button className="button button-outline" onClick={state.refresh}>Refresh logs</button></div>
+    <section className="admin-panel"><form className="admin-toolbar monitor-filters" onSubmit={event => { event.preventDefault(); setApplied({ ...filters }); setPage(1); }}>
+      <label>Action<input name="action" value={filters.action} placeholder="e.g. ADMIN_CREATE_TRAIN" onChange={change}/></label><label>Entity<input name="entityType" value={filters.entityType} placeholder="e.g. Train" onChange={change}/></label><label>Actor role<select name="actorRole" value={filters.actorRole} onChange={change}><option value="">All roles</option>{['ADMIN', 'PASSENGER', 'TICKET_OFFICER'].map(role => <option key={role}>{role}</option>)}</select></label>
+      <label>From · WAT<input name="from" type="date" value={filters.from} max={filters.to} onChange={change}/></label><label>To · WAT<input name="to" type="date" value={filters.to} min={filters.from} onChange={change}/></label><button className="button button-primary">Apply filters</button><button type="button" className="button button-outline" onClick={() => { setFilters(initial); setApplied(initial); setPage(1); }}>Clear</button>
+    </form><LoadState {...state}/>{!state.loading && !state.error && data && <>{!data.items.length ? <div className="admin-state"><h2>No audit records found</h2><p>Try a broader date range or clear the filters.</p></div> : <div className="admin-table-scroll" tabIndex={0}><table className="admin-table"><thead><tr>{['Time · WAT', 'Administrator / actor', 'Action', 'Entity', 'Entity ID', 'Metadata'].map(label => <th key={label}>{label}</th>)}</tr></thead><tbody>{data.items.map(row => <tr key={row.id}><td>{when(row.createdAt)}</td><td>{row.user?.fullName ?? 'System'}<small className="admin-demo">{human(row.user?.role)}</small></td><td><Badge value={row.action}/></td><td>{row.entityType}</td><td>{row.entityId ?? '—'}</td><td><pre className="monitor-metadata">{JSON.stringify(row.metadata ?? {})}</pre></td></tr>)}</tbody></table></div>}<Pager data={data} onPage={setPage}/></>}</section></>;
+}

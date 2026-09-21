@@ -101,6 +101,14 @@ test('environment configuration supplies usable development defaults', () => {
   assert.ok(config.clientUrls.includes('http://localhost:5173'));
 });
 
+test('production configuration fails closed without an explicit public frontend origin', () => {
+  assert.throws(() => parseEnvironment({ NODE_ENV: 'production' }), /CLIENT_URL/);
+  assert.throws(() => parseEnvironment({ NODE_ENV: 'production', CLIENT_URL: 'http://localhost:5173' }), /localhost/);
+  assert.throws(() => parseEnvironment({ NODE_ENV: 'production', CLIENT_URL: 'https://127.0.0.1' }), /localhost/);
+  const config = parseEnvironment({ NODE_ENV: 'production', CLIENT_URL: 'https://railconnect.example' });
+  assert.deepEqual(config.clientUrls, ['https://railconnect.example']);
+});
+
 test('invalid configuration fails early', () => {
   for (const port of ['abc', '0', '65536', '5000.5', '']) {
     assert.throws(() => parseEnvironment({ PORT: port }), /PORT/);

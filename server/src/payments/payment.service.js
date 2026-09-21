@@ -2,6 +2,7 @@ import { randomBytes } from 'node:crypto';
 import { ApiError } from '../utils/ApiError.js';
 import { getMyBooking, releaseExpiredHolds } from '../services/booking.service.js';
 import { demoProvider } from './providers/demo.provider.js';
+import { assessActivity } from '../fraud/fraud.service.js';
 
 const conflict = message => new ApiError(409, message);
 const reference = prefix => `${prefix}-${new Date().getUTCFullYear()}-${randomBytes(10).toString('hex').toUpperCase()}`;
@@ -76,7 +77,8 @@ export async function settlePayment(db, id, provider = demoProvider) {
     if (verified.status === 'FAILED') {
       await tx.payment.update({ where: { id }, data: { status: 'FAILED', failureReason: 'The demo provider declined this simulated payment. No money was charged.' } });
       await tx.booking.update({ where: { id: booking.id }, data: { paymentStatus: 'FAILED' } });
-      await tx.auditLog.create({ data: { userId: booking.userId, action: 'DEMO_PAYMENT_FAILED', entityType: 'Payment', entityId: id } });
+      const event = await tx.auditLog.create({ data: { userId: booking.userId, action: 'DEMO_PAYMENT_DECLINED', entityType: 'Payment', entityId: id } });
+      await assessActivity(tx, { userId: booking.userId, sourceId: event.id, sourceType: 'PAYMENT_DECLINED', bookingId: booking.id });
       return;
     }
     await tx.payment.update({ where: { id }, data: { status: 'PAID', paidAt: now, failureReason: null } });

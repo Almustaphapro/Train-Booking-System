@@ -4,7 +4,7 @@ The public railway website is available at <http://localhost:5173/>. Visitors ca
 
 The homepage contains navigation, a hero with an original SVG rail illustration, train search, popular demo routes, how it works, secure ticketing information, reasons to use the platform, accessible FAQ accordions and a footer. Planned ticketing is explicitly marked as future functionality. Demo schedules and fares are not official Nigerian Railway Corporation data.
 
-Phase 6 extends this search with [explainable recommendations](recommendations.md). Phase 7 adds [seat selection and pending bookings](bookings.md), accessed from each result; [Phase 8 demo payments](demo-payments.md) can confirm them and generate demo ticket records. Searching alone does not create a reservation. Phase 9 adds [electronic QR tickets, printing and PDFs](qr-tickets.md); officer scanning is deferred.
+Phase 6 extends this search with [explainable recommendations](recommendations.md). Phase 7 adds [seat selection and pending bookings](bookings.md), accessed from each result; [Phase 8 demo payments](demo-payments.md) can confirm them and generate demo ticket records. Searching alone does not create a reservation. Phase 9 adds [electronic QR tickets, printing and PDFs](qr-tickets.md); Phase 10 adds [officer verification and boarding](officer-verification.md).
 
 ## Start and try it
 

@@ -40,7 +40,7 @@ export async function loginUser(db, input, config) {
     const user = await tx.user.findUnique({ where: { id: found.id }, select: publicUserSelect });
     if (!user || user.status !== 'ACTIVE') throw invalidCredentials();
     const session = await newSession(tx, user.id, config.ttlSeconds);
-    await tx.auditLog.create({ data: { userId: user.id, action: 'AUTH_LOGIN', entityType: 'User', entityId: user.id } });
+    await tx.auditLog.create({ data: { userId: user.id, action: user.role === 'ADMIN' ? 'ADMIN_LOGIN' : 'AUTH_LOGIN', entityType: 'User', entityId: user.id } });
     return { user, session };
   });
 }

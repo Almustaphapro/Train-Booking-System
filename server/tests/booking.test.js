@@ -42,6 +42,7 @@ after(async () => {
   if (server) await new Promise(resolve => server.close(resolve));
   try { await db.$transaction(async tx => {
     const bookings = await tx.booking.findMany({ where: { userId: { in: users.map(row => row.id) } }, select: { id: true } });
+    await tx.fraudAlert.deleteMany({ where: { userId: { in: users.map(row => row.id) } } });
     await tx.auditLog.deleteMany({ where: { OR: [{ userId: { in: users.map(row => row.id) } }, { entityType: 'Booking', entityId: { in: bookings.map(row => row.id) } }] } });
     await tx.booking.deleteMany({ where: { userId: { in: users.map(row => row.id) } } });
     await tx.scheduleSeat.deleteMany({ where: { scheduleId: { in: schedules.map(row => row.id) } } });

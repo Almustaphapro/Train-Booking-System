@@ -2,7 +2,7 @@
 
 Passengers can search, open a schedule, choose an Economy or Business seat, review the journey, create a pending reservation and view it in **My Bookings**. Public seat maps show Available, Selected, Held, Booked and Unavailable states. Selected is a browser selection only; a ten-minute hold starts when the passenger submits **Create pending booking**.
 
-Phase 8 now adds [demo payments and atomic demo ticket generation](demo-payments.md). Pending reservations and demonstration tickets are not valid for real travel. Phase 9 adds [QR ticket pages, printing and PDFs](qr-tickets.md). Real gateways and officer scanning are not implemented. All demonstration schedules and fares remain labelled as university project data, not official Nigerian Railway Corporation information.
+Phase 8 now adds [demo payments and atomic demo ticket generation](demo-payments.md). Pending reservations and demonstration tickets are not valid for real travel. Phase 9 adds [QR ticket pages, printing and PDFs](qr-tickets.md). Phase 10 adds [officer verification and boarding](officer-verification.md). Real gateways are not implemented. All demonstration schedules and fares remain labelled as university project data, not official Nigerian Railway Corporation information.
 
 ## Try the flow
 

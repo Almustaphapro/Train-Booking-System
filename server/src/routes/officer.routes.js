@@ -8,7 +8,9 @@ import { ApiError } from '../utils/ApiError.js';
 import { verifyForBoarding, confirmBoarding, listOfficerSchedules, officerActivity } from '../officer/officer.service.js';
 
 const id = z.string().min(1).max(30).regex(/^[a-zA-Z0-9_-]+$/);
-const verificationSchema = z.strictObject({ scheduleId: id, entry: z.string().trim().max(64).refine(value => /^[a-f0-9]{64}$/i.test(value) || /^TKT-[a-z0-9-]{4,36}$/i.test(value), 'Enter the QR token or a ticket number beginning TKT-.') });
+// Unknown/malformed QR contents still produce an INVALID scan record. Never
+// follow URLs or log the raw entry; the service stores only its fingerprint.
+const verificationSchema = z.strictObject({ scheduleId: id, entry: z.string().trim().min(1).max(2048) });
 
 export function createOfficerRouter(getDatabase, config) {
   const router = Router();

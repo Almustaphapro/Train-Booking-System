@@ -12,6 +12,11 @@
   --color-danger: #af3434;
   --color-border: #dce3dc;
   --color-tint: #eaf0e8;
+  --color-surface-muted: #f4f7f2;
+  --color-focus: #1c7d5d;
+  --color-success-bg: #e7f2e9;
+  --color-warning-bg: #fff3d8;
+  --color-danger-bg: #fbe8e6;
   --space-1: 0.25rem;
   --space-2: 0.5rem;
   --space-3: 0.75rem;
@@ -24,6 +29,8 @@
   --radius-md: 1rem;
   --radius-lg: 1.5rem;
   --radius-pill: 100vmax;
+  --control-height: 46px;
+  --focus-ring: 0 0 0 3px color-mix(in srgb, var(--color-focus) 28%, transparent);
   --font-body: 'Segoe UI', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
   --shadow-card: 0 12px 40px rgb(26 54 38 / 5%);
   --container-width: 1160px;

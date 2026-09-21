@@ -29,7 +29,7 @@ The ticket number is unique. The QR token uses `crypto.randomBytes(32)`, encoded
 
 The QR image encodes **only that opaque token**. It contains no passenger name, email, phone, booking reference or fare. No token appears in a URL. The passenger API returns a PNG data URL for the owner's ticket; it does not return a separate raw-token field. The PNG itself necessarily contains the token, so the ticket should be kept private. QR generation and PDF rendering happen locally on the backend, without external QR services.
 
-An image or saved PDF cannot prove current validity. The server looks up the token and checks the current ticket, booking, payment, schedule and seat reservation together. Verification is read-only in this phase; it neither marks the ticket used nor creates a boarding/scan log.
+An image or saved PDF cannot prove current validity. The server looks up the token and checks the current ticket, booking, payment, schedule and seat reservation together. The Phase 9 `/api/tickets/verify` endpoint remains read-only and cannot authorize boarding. Phase 10 adds the separate [officer verification and boarding workflow](officer-verification.md), with schedule-bound scan logs and transactional ticket usage.
 
 ## API
 
@@ -61,7 +61,7 @@ These are **effective statuses**, calculated on each server read. For example, a
 
 Cancellation/payment revocation is checked first, then use, then expiry, then the confirmed-seat invariant. Used/cancelled/expired tickets stay in the owner's archive with their status clearly shown. A previously downloaded QR is rejected when its current database state becomes invalid. Unrelated station/train deactivation does not itself revoke an already paid ticket; cancellation of its schedule does.
 
-The passenger pages refresh current status every 15 seconds. A read error hides the old ticket rather than showing a stale valid badge. Printed/downloaded status is a dated snapshot and is labelled accordingly. Officer scanning, consuming tickets, duplicate-scan handling, fraud detection and any refund workflow are deferred to later phases.
+The passenger pages refresh current status every 15 seconds. A read error hides the old ticket rather than showing a stale valid badge. Printed/downloaded status is a dated snapshot and is labelled accordingly. Phase 10 now implements [officer scanning, ticket consumption and duplicate-use handling](officer-verification.md). Phase 11 adds [fraud monitoring](fraud-monitoring.md), including alerts for rejected duplicate presentations. Refund workflows remain deferred.
 
 ## Files and dependencies
 
@@ -98,4 +98,4 @@ Phase 9 verification passed **96 automated tests**: 14 ticket, 22 payment, 17 bo
 
 An isolated Edge browser completed payment → ticket, My Tickets and individual-ticket login redirects, PDF download, print layout, status changes and error recovery. Empty, list and detail pages were checked at 320, 390, 768, 1024 and 1440 pixels with no page overflow or uncaught JavaScript exceptions. Fixtures were removed after verification. Build tooling required the existing Windows subprocess permission; no application failure remains from that restriction.
 
-**Phase 10 has not been started.**
+**Phases 10 and 11 are implemented separately; Phase 12 has not been started.**

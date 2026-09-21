@@ -7,3 +7,6 @@ export async function adminOptions(resource, signal) {
   do { const result = await listAdmin(resource, { page, pageSize: 100 }, signal); rows.push(...result.items); pages = result.pages; page++; } while (page <= pages);
   return rows;
 }
+export const reviewFraudAlert = async (id, input) => (await apiClient.post(`/admin/fraud-alerts/${id}/review`, input)).data.data;
+export const investigateFraudTicket = async (id, input) => (await apiClient.post(`/admin/fraud-alerts/${id}/investigate-ticket`, input)).data.data;
+export const changePassengerStatus = async (id, input) => (await apiClient.post(`/admin/passengers/${id}/status`, input)).data.data;

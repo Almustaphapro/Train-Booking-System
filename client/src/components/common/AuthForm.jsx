@@ -38,7 +38,7 @@ export default function AuthForm({ mode }) {
       <h2>A connected journey<br />starts with you.</h2>
       <p>One account for your place on the platform. Your rail travel experience is taking shape.</p>
       <div className="auth-assurance"><ShieldCheck size={22} aria-hidden="true" /><span>Personal access.<br />A space of your own.</span></div>
-      <p className="auth-disclaimer">University demonstration project. Seat reservations and demo payments are available. No real money is charged; demo tickets are not valid for real travel.</p>
+      <p className="auth-disclaimer">Seat reservations and demo payments are available. No real money is charged; demo tickets are not valid for real travel.</p>
     </aside>
     <section className="auth-form-panel" aria-labelledby="auth-title">
       <span className="eyebrow">{registering ? 'GET STARTED' : 'WELCOME BACK'}</span>

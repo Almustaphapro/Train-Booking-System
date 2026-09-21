@@ -30,6 +30,7 @@
 .seat-button.held, .seat-swatch.held { background: #fff0cd; color: #735310; border-color: #c4ab64; }
 .seat-button.booked, .seat-swatch.booked { background: #f4dddd; color: #884646; border-color: #c49e9e; }
 .seat-button.blocked, .seat-swatch.blocked { background: #e8ecea; color: #647069; border-color: #b4bdb7; }
+.seat-button:hover:not(:disabled) { border-color: var(--color-primary); transform: translateY(-2px); box-shadow: 0 5px 14px rgb(18 92 70 / 10%); }
 .booking-notice { padding: 1rem; margin-block: 1rem; background: #eef4ed; border-radius: .6rem; font-size: .88rem; line-height: 1.7; }
 .booking-notice.error { background: #fff0eb; color: #843c28; }.booking-notice.success { color: #225936; }
 .booking-notice button { margin-top: .6rem; }.booking-notice a { text-decoration: underline; }
@@ -43,4 +44,5 @@
 .passenger-actions { padding-top: 2rem; display: flex; flex-wrap: wrap; gap: 1rem; }
 .result-booking-link { margin: 1rem 1.6rem; }
 @media(max-width: 800px) { .booking-columns { grid-template-columns: 1fr; }.booking-toolbar { align-items: flex-start; flex-direction: column; } }
+@media(max-width: 520px) { .booking-page { padding-block: 2rem 3.5rem; } .booking-page > h1 { font-size: 2rem; } .seat-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: .5rem; } .seat-button { min-height: 78px; padding: .65rem .15rem; } .seat-button svg { width: 19px; } .booking-dialog-actions .button, .passenger-actions .button { flex: 1 1 100%; } }
 @media(max-width: 380px) { .booking-summary, .reservation-panel, .seat-map, .my-booking { padding: 1rem; }.seat-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }.booking-reference { padding: 1rem; } }

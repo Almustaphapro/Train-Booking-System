@@ -13,7 +13,7 @@ export function createTicketRouter(getDatabase, config) {
   const router = Router();
   router.use((_request, response, next) => { response.set({ 'Cache-Control': 'no-store', 'Referrer-Policy': 'no-referrer' }); next(); });
   router.use(authenticate(getDatabase, config));
-  // Read-only validation foundation. No scanning UI or boarding mutations yet.
+  // Read-only token lookup retained for compatibility; boarding uses /officer.
   router.post('/verify', authorize('ADMIN', 'TICKET_OFFICER'), authMutationGuard,
     rateLimit({ windowMs: 60000, limit: 60, standardHeaders: 'draft-8', legacyHeaders: false,
       message: { success: false, message: 'Too many verification requests. Please wait a minute.' } }),

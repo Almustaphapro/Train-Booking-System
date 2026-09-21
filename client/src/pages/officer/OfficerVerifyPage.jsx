@@ -20,14 +20,14 @@ export default function OfficerVerifyPage() {
   useEffect(() => { if (result) resultPanel.current?.focus(); }, [result]);
   const schedule = schedules.data?.items.find(s => s.id === scheduleId);
   const canScan = !!schedule?.boardable && !schedules.error && !schedules.loading;
-  const remaining = result?.confirmBefore ? Math.max(0, Math.ceil((new Date(result.confirmBefore).getTime() - new Date(result.checkedAt).getTime() - (now - result.receivedAt)) / 1000)) : 0;
+  const remaining = result?.confirmBefore ? Math.max(0, Math.ceil((new Date(result.confirmBefore).getTime() - new Date(result.checkedAt).getTime() - Math.max(0, now - result.receivedAt)) / 1000)) : 0;
   const displayStatus = result?.valid && (!remaining || !canScan) ? 'VERIFICATION_EXPIRED' : result?.status;
   function reset() { setResult(null); setError(''); setEntry(''); setCamera(false); }
   async function verify(value) {
     if (inFlight.current || !canScan) return;
     setCamera(false); setError(''); setResult(null);
     const input = value.trim();
-    if (!/^[a-f0-9]{64}$/i.test(input) && !/^TKT-[a-z0-9-]{4,36}$/i.test(input)) { setError('Enter a ticket number beginning TKT- or the secure QR token. Unrecognized QR codes cannot be verified.'); return; }
+    if (!input || input.length > 2048) { setError('Enter a ticket number or QR token of at most 2048 characters.'); return; }
     inFlight.current = true; setBusy(true); controller.current = new AbortController();
     try {
       const response = await apiClient.post('/officer/verify', { entry: input, scheduleId }, { signal: controller.current.signal });

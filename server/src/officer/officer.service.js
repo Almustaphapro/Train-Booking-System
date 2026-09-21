@@ -2,6 +2,7 @@ import { createHash } from 'node:crypto';
 import { ApiError } from '../utils/ApiError.js';
 import { ticketInclude, ticketValidity } from '../tickets/ticket.service.js';
 import { railwayDate, travelDayBounds } from '../services/search.service.js';
+import { assessActivity } from '../fraud/fraud.service.js';
 
 export const VERIFICATION_TTL_MS = 2 * 60 * 1000;
 const scheduleInclude = { train: { select: { name: true, code: true, isDemo: true } }, route: { include: { originStation: true, destinationStation: true } } };
@@ -39,10 +40,16 @@ function resultDto(row, result, now) {
       departureTime: s.departureTime, arrivalTime: s.arrivalTime, seatNumber: b.scheduleSeat.seat.seatNumber,
       seatClass: b.scheduleSeat.seat.seatClass, isDemo: s.isDemo || s.train.isDemo || s.route.isDemo || b.payments.some(p => p.isDemo) } : null };
 }
-function log(tx, { row, officerId, scheduleId, result, fingerprint, ipAddress, now }) {
+async function log(tx, { row, officerId, scheduleId, result, fingerprint, ipAddress, now }) {
+  const subjectId = result.status === 'ALREADY_USED' ? row.booking.userId : result.status === 'INVALID' ? officerId : null;
+  if (subjectId) await tx.$queryRaw`SELECT id FROM User WHERE id = ${subjectId} FOR UPDATE`;
   const storedResult = ['WRONG_SCHEDULE', 'SCHEDULE_CLOSED', 'VERIFICATION_EXPIRED'].includes(result.status) ? 'REJECTED' : result.status;
-  return tx.ticketScanLog.create({ data: { ticketId: row?.id ?? null, officerId, scheduleId, result: storedResult,
+  const scan = await tx.ticketScanLog.create({ data: { ticketId: row?.id ?? null, officerId, scheduleId, result: storedResult,
     reason: result.message, tokenFingerprint: fingerprint, ipAddress, scannedAt: now } });
+  if (result.status === 'ALREADY_USED') await assessActivity(tx, { userId: row.booking.userId, sourceId: scan.id, sourceType: 'DUPLICATE_SCAN',
+    ticketId: row.id, bookingId: row.bookingId, officerId, duplicateEvent: true });
+  if (result.status === 'INVALID') await assessActivity(tx, { userId: officerId, sourceId: scan.id, sourceType: 'INVALID_SCAN', officerId });
+  return scan;
 }
 
 export async function verifyForBoarding(db, officerId, { entry, scheduleId }, ipAddress) {
@@ -50,7 +57,8 @@ export async function verifyForBoarding(db, officerId, { entry, scheduleId }, ip
   const fingerprint = createHash('sha256').update(`${token ? 'token' : 'number'}:${normalized}`).digest('hex');
   return officerTransaction(db, async tx => {
     if (!await tx.schedule.findUnique({ where: { id: scheduleId }, select: { id: true } })) throw new ApiError(404, 'Select an existing boarding schedule.');
-    const row = await tx.ticket.findUnique({ where: token ? { qrToken: normalized } : { ticketNumber: normalized }, include: ticketInclude });
+    const recognizedFormat = token || /^TKT-[a-z0-9-]{4,36}$/i.test(normalized);
+    const row = recognizedFormat ? await tx.ticket.findUnique({ where: token ? { qrToken: normalized } : { ticketNumber: normalized }, include: ticketInclude }) : null;
     const now = new Date(), result = check(row, scheduleId, now);
     const scan = await log(tx, { row, officerId, scheduleId, result, fingerprint, ipAddress, now });
     return { ...resultDto(row, result, now), verificationId: result.valid ? scan.id : null, confirmBefore: result.valid ? new Date(now.getTime() + VERIFICATION_TTL_MS) : null };

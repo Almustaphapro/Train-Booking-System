@@ -2,7 +2,7 @@
 
 University project: **Design and Implementation of a Secure and Intelligent Web-Based Train Transportation Booking and Management System**.
 
-## Current scope: Phases 1–9
+## Current scope: Phases 1–11
 
 The frontend and backend foundation is implemented. The frontend now has a responsive railway homepage, public train search, a live service-status page and a not-found page. The backend uses consistent JSON responses, restricted CORS, environment validation and centralized error handling.
 
@@ -22,7 +22,11 @@ Phase 8 adds an explicitly labelled DEMO PAYMENT ENVIRONMENT with Card, Bank Tra
 
 Phase 9 adds passenger electronic tickets, My Tickets, secure QR codes, printing, PDF downloads and read-only server validation. See the [QR ticket guide](docs/qr-tickets.md) for usage, status rules, API contracts and tests.
 
-Real payment gateways, officer scanning/boarding and fraud detection are **not implemented yet**. Phase 10 has not started. No real money or banking credentials are used. Demonstration schedules, fares and tickets are not official Nigerian Railway Corporation data.
+Phase 10 adds the Ticket Officer dashboard, camera/manual verification, schedule checks, atomic boarding confirmation and scan logs. See the [officer verification guide](docs/officer-verification.md).
+
+Phase 11 adds deterministic suspicious-activity rules, explainable 0–100 anomaly scoring, persisted evidence and admin-only inspection APIs. See the [fraud monitoring guide](docs/fraud-monitoring.md) for thresholds, attribution, a worked example and tests.
+
+Phase 12 has not started. Real payment gateways are **not implemented**. No real money or banking credentials are used. Demonstration schedules, fares and tickets are not official Nigerian Railway Corporation data.
 
 ## Prerequisites
 
@@ -140,7 +144,8 @@ Phase 2 also uses `DATABASE_URL`, `DATABASE_RSA_PUBLIC_KEY_PATH`, `SHADOW_DATABA
 │   │   ├── recommendation/
 │   │   ├── payments/            # Demo provider, settlement and background worker
 │   │   ├── tickets/             # Private QR tickets, server verification and PDFs
-│   │   ├── fraud/
+│   │   ├── officer/             # Verification, boarding and scan logs
+│   │   ├── fraud/               # Rules, explainable scoring and persisted alerts
 │   │   ├── app.js              # HTTP middleware and routes
 │   │   └── server.js           # Listener and shutdown lifecycle
 │   ├── tests/foundation.test.js
@@ -161,7 +166,7 @@ The CSS system defines colors, spacing, border radii, typography and surfaces ce
 
 ## Dependencies
 
-- Client runtime: `react`, `react-dom`, `react-router`, `axios`, `lucide-react`.
+- Client runtime: `react`, `react-dom`, `react-router`, `axios`, `lucide-react`, `jsqr` (loaded when camera scanning starts).
 - Client build tooling: `vite`, `@vitejs/plugin-react`.
 - Server runtime: `express`, `cors`, `dotenv`, `@prisma/client`, `@prisma/adapter-mariadb`, `bcrypt`, `cookie-parser`, `express-rate-limit`, `helmet`, `jsonwebtoken`, `zod`, `qrcode`, `pdfkit`.
 - Database tooling: `prisma`.
@@ -231,7 +236,7 @@ Open http://localhost:4173; keep the backend running. For the backend without fi
 - **Invalid configuration:** the backend stops with a specific variable-validation error before listening.
 - **Package installation:** registry access is required for the initial dependency install; local network policies may require permission.
 
-Phases 1–9 are implemented. Phase 10 has not started. Read the [authentication guide](docs/authentication.md) before deployment, including HTTPS, same-site hosting and rate-limit storage requirements. The [admin management guide](docs/admin-management.md), [public search guide](docs/public-search.md), [recommendation guide](docs/recommendations.md), [booking guide](docs/bookings.md), [demo payment guide](docs/demo-payments.md) and [QR ticket guide](docs/qr-tickets.md) describe the current interfaces and tests.
+Phases 1–11 are implemented. Phase 12 has not started. Read the [authentication guide](docs/authentication.md) before deployment, including HTTPS, same-site hosting and rate-limit storage requirements. The [admin management guide](docs/admin-management.md), [public search guide](docs/public-search.md), [recommendation guide](docs/recommendations.md), [booking guide](docs/bookings.md), [demo payment guide](docs/demo-payments.md), [QR ticket guide](docs/qr-tickets.md), [officer verification guide](docs/officer-verification.md) and [fraud monitoring guide](docs/fraud-monitoring.md) describe the current interfaces and tests.
 
 Framework references: [Vite guide](https://vite.dev/guide/), [React Router declarative setup](https://reactrouter.com/start/declarative/installation), [Express error handling](https://expressjs.com/en/guide/error-handling/).
 

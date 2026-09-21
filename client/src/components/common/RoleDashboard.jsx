@@ -4,7 +4,7 @@ import { BadgeCheck, ArrowUpRight } from 'lucide-react';
 import { apiClient } from '../../api/client.js';
 import { roleLabel } from '../../utils/roles.js';
 
-export default function RoleDashboard({ title, endpoint, description, planned }) {
+export default function RoleDashboard({ title, endpoint, description, planned = [], ready = [] }) {
   const [user, setUser] = useState(null);
   const [error, setError] = useState('');
   const [attempt, setAttempt] = useState(0);
@@ -36,7 +36,7 @@ export default function RoleDashboard({ title, endpoint, description, planned })
           <div><dt>Account created</dt><dd>{new Date(user.createdAt).toLocaleDateString()}</dd></div>
         </dl>
       </section>
-      <section className="planned-card" aria-labelledby="planned-heading"><span className="eyebrow">COMING IN LATER PHASES</span><h2 id="planned-heading">What comes next</h2><ul>{planned.map(item => <li key={item}>{item}</li>)}</ul><p>These services are still in development.</p><Link to="/status">Check service status <ArrowUpRight size={16} aria-hidden="true" /></Link></section>
+      <section className="planned-card" aria-labelledby="planned-heading"><span className="eyebrow">{ready.length ? 'YOUR PASSENGER SERVICES' : 'COMING IN LATER PHASES'}</span><h2 id="planned-heading">{ready.length ? 'Prepare for your journey' : 'What comes next'}</h2><ul>{(ready.length ? ready : planned).map(item => <li key={item}>{item}</li>)}</ul><p>{ready.length ? 'Demonstration tickets are for academic use only.' : 'These services are still in development.'}</p><Link to="/status">Check service status <ArrowUpRight size={16} aria-hidden="true" /></Link></section>
     </div>}
   </div>;
 }

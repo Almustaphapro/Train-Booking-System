@@ -29,7 +29,8 @@
     "test:payment": "npm run test:payment --workspace server",
     "auth:secret": "npm run auth:secret --workspace server",
     "test:ticket": "npm run test:ticket --workspace server",
-    "test:officer": "npm run test:officer --workspace server"
+    "test:officer": "npm run test:officer --workspace server",
+    "test:fraud": "npm run test:fraud --workspace server"
   },
   "overrides": {
     "mariadb": "3.5.4",

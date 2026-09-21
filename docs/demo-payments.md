@@ -4,7 +4,7 @@ RailConnect now has an academic **DEMO PAYMENT ENVIRONMENT**. Passengers can cho
 
 There are no card number, account number, CVV, PIN, OTP or USSD-code fields. The backend rejects unknown request fields rather than accepting banking credentials. No gateway keys, live financial accounts or new dependencies are required.
 
-Successful payments generate the ticket database record, number and secure token atomically. Phase 9 now adds [passenger QR tickets, printing, PDF downloads and read-only server validation](qr-tickets.md). Officer scanning and boarding remain deferred to Phase 10.
+Successful payments generate the ticket database record, number and secure token atomically. Phase 9 now adds [passenger QR tickets, printing, PDF downloads and read-only server validation](qr-tickets.md). Phase 10 adds [officer verification, scanning and boarding](officer-verification.md).
 
 ## Use the demo
 

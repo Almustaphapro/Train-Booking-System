@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "node --watch src/server.js",
     "start": "node src/server.js",
-    "test": "node --test tests/foundation.test.js tests/auth-validation.test.js tests/recommendation.test.js",
+    "test": "node --test tests/foundation.test.js tests/auth-validation.test.js tests/recommendation.test.js tests/fraud-scoring.test.js",
     "test:auth": "node --test tests/auth.test.js",
     "test:admin": "node --test tests/admin.test.js",
     "test:search": "node --test tests/search.test.js",
@@ -23,7 +23,8 @@
     "db:verify": "node prisma/verify-seed.js",
     "test:db": "node --test tests/database.test.js",
     "test:ticket": "node --test tests/ticket.test.js",
-    "test:officer": "node --test tests/officer.test.js"
+    "test:officer": "node --test tests/officer.test.js",
+    "test:fraud": "node --test tests/fraud.test.js"
   },
   "dependencies": {
     "@prisma/adapter-mariadb": "^7.10.0",

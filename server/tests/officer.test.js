@@ -46,6 +46,7 @@ after(async () => {
     const bookings = await tx.booking.findMany({ where: { userId: { in: users.map(row => row.id) } }, select: { id: true } });
     const paymentIds = (await tx.payment.findMany({ where: { bookingId: { in: bookings.map(row => row.id) } }, select: { id: true } })).map(row => row.id);
     const ticketIds = (await tx.ticket.findMany({ where: { bookingId: { in: bookings.map(row => row.id) } }, select: { id: true } })).map(row => row.id);
+    await tx.fraudAlert.deleteMany({ where: { userId: { in: users.map(row => row.id) } } });
     await tx.auditLog.deleteMany({ where: { OR: [{ entityType: 'Payment', entityId: { in: paymentIds } }, { entityType: 'Ticket', entityId: { in: ticketIds } }] } });
     await tx.auditLog.deleteMany({ where: { OR: [{ userId: { in: users.map(row => row.id) } }, { entityType: 'Booking', entityId: { in: bookings.map(row => row.id) } }] } });
     await tx.ticketScanLog.deleteMany({ where: { officerId: { in: users.map(row => row.id) } } });
@@ -98,7 +99,7 @@ test('schedules are database-backed and date-validated; activity begins empty fo
 test('strict validation and CSRF prevent injected status, passenger, timestamp and unrelated booking changes', async () => {
   const row = await paidTicket();
   assert.equal((await verify(row, { extraHeaders: { 'X-Requested-With': '' } })).status, 403);
-  for (const body of [{ entry: row.qrToken }, { entry: 'https://evil.test/' + row.qrToken, scheduleId: schedules[0].id }, { entry: row.qrToken, scheduleId: schedules[0].id, status: 'USED' }]) assert.equal((await verify(row, { body })).status, 422);
+  for (const body of [{ entry: row.qrToken }, { entry: { token: row.qrToken }, scheduleId: schedules[0].id }, { entry: row.qrToken, scheduleId: schedules[0].id, status: 'USED' }]) assert.equal((await verify(row, { body })).status, 422);
   assert.equal((await verify(row, { body: { entry: row.qrToken, scheduleId: 'missing' } })).status, 404);
   const v = await validCheck(row);
   for (const extra of [{ ticketId: row.id }, { usedAt: '2000-01-01' }, { bookingStatus: 'CONFIRMED' }, { officerId: users[4].id }, { scheduleId: schedules[1].id }]) assert.equal((await board(v.verificationId, { body: { verificationId: v.verificationId, ...extra } })).status, 422);
@@ -125,7 +126,7 @@ test('unrecognized token or ticket number records INVALID without leaking passen
 
 test('pending and failed bookings cannot produce a valid boarding result', async () => {
   const b = await reserveNext(); assert.equal(await payBooking(b, 'FAILURE'), null);
-  assert.equal((await verify(b.bookingReference, { body: { entry: b.bookingReference, scheduleId: schedules[0].id } })).status, 422);
+  assert.equal((await verify(b.bookingReference, { body: { entry: b.bookingReference, scheduleId: schedules[0].id } })).body.data.status, 'INVALID');
   assert.equal((await board(b.id)).status, 404);
 });
 

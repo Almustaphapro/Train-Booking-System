@@ -1,5 +1,6 @@
 import { randomInt } from 'node:crypto';
 import { ApiError } from '../utils/ApiError.js';
+import { assessActivity } from '../fraud/fraud.service.js';
 
 export const HOLD_MILLISECONDS = 10 * 60 * 1000;
 const alphabet = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
@@ -94,7 +95,8 @@ export async function createPendingBooking(db, userId, input) {
     if (claimed.count !== 1) throw unavailable();
     const booking = await tx.booking.create({ data: { userId, scheduleId: schedule.id, scheduleSeatId: inventory.id, activeScheduleSeatId: inventory.id,
       bookingReference: bookingReference(now), amount, currency: schedule.currency, bookingStatus: 'PENDING', paymentStatus: 'PENDING', expiresAt }, include: bookingInclude });
-    await tx.auditLog.create({ data: { userId, action: 'BOOKING_CREATED', entityType: 'Booking', entityId: booking.id } });
+    const event = await tx.auditLog.create({ data: { userId, action: 'BOOKING_CREATED', entityType: 'Booking', entityId: booking.id } });
+    await assessActivity(tx, { userId, sourceType: 'BOOKING_CREATED', sourceId: event.id, bookingId: booking.id });
     return { booking: bookingDto(booking), serverTime: new Date() };
   });
 }
@@ -125,7 +127,8 @@ export async function cancelPendingBooking(db, userId, id) {
     const failed = await tx.payment.updateMany({ where: { bookingId: id, status: 'PENDING' }, data: { status: 'FAILED', failureReason: 'The reservation was cancelled before payment completed. No money was charged.' } });
     await tx.booking.update({ where: { id }, data: { bookingStatus: 'CANCELLED', activeScheduleSeatId: null, ...(failed.count ? { paymentStatus: 'FAILED' } : {}) } });
     await tx.scheduleSeat.update({ where: { id: booking.scheduleSeatId }, data: { status: booking.scheduleSeat.seat.status === 'ACTIVE' ? 'AVAILABLE' : 'BLOCKED', heldUntil: null } });
-    await tx.auditLog.create({ data: { userId, action: 'BOOKING_CANCELLED', entityType: 'Booking', entityId: id } });
+    const event = await tx.auditLog.create({ data: { userId, action: 'BOOKING_CANCELLED', entityType: 'Booking', entityId: id } });
+    await assessActivity(tx, { userId, sourceType: 'BOOKING_CANCELLED', sourceId: event.id, bookingId: id });
   });
   return getMyBooking(db, userId, id);
 }

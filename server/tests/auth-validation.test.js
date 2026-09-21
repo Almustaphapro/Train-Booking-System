@@ -3,6 +3,7 @@ import { test } from 'node:test';
 import { randomBytes } from 'node:crypto';
 import { registrationSchema, loginSchema } from '../src/validators/auth.validators.js';
 import { parseAuthConfig } from '../src/config/auth.js';
+import { createAuthLimiters } from '../src/security/authRateLimit.js';
 
 const input = { fullName: 'Ada Okafor', email: 'ADA@example.test ', phone: '0801 234 5678', password: 'Strong!Pass1234', confirmPassword: 'Strong!Pass1234' };
 
@@ -37,4 +38,10 @@ test('auth configuration fails closed for missing secrets and invalid lifetimes'
   assert.equal(production.cookieOptions.httpOnly, true);
   assert.equal(production.cookieOptions.sameSite, 'lax');
   assert.match(production.cookieName, /^__Secure-/);
+});
+
+test('login protection includes independent IP and account limiters', () => {
+  const limiters = createAuthLimiters({ loginLimit: 2 });
+  assert.equal(Array.isArray(limiters.login), true);
+  assert.equal(limiters.login.length, 2);
 });
