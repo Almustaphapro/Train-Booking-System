@@ -30,7 +30,7 @@ before(async () => {
   for (const [index, status] of ['CANCELLED', 'BOARDING', 'DEPARTED', 'COMPLETED'].entries()) await schedule(start.getTime() + (index + 2) * 3600000, { status });
   await schedule(start.getTime() + 8 * 3600000, { trainId: disabledTrain.id });
   const rows = [];
-  for (const [index, seat] of seats.entries()) rows.push(await db.scheduleSeat.create({ data: { scheduleId: first.id, trainId: train.id, seatId: seat.id, status: ['AVAILABLE', 'HELD', 'BOOKED', 'BLOCKED', 'AVAILABLE', 'AVAILABLE'][index], heldUntil: index === 1 ? new Date(Date.now() - 1000) : null } }));
+  for (const [index, seat] of seats.entries()) rows.push(await db.scheduleSeat.create({ data: { scheduleId: first.id, trainId: train.id, seatId: seat.id, status: ['AVAILABLE', 'HELD', 'BOOKED', 'BLOCKED', 'AVAILABLE', 'AVAILABLE'][index], heldUntil: index === 1 ? new Date(Date.now() + 600000) : null } }));
   user = await db.user.create({ data: { fullName: 'Search test passenger', email: `${tag}@search-tests.test`, phone: `+SEARCH${tag}`, passwordHash: 'fixture-not-used-for-login' } });
   await db.booking.create({ data: { userId: user.id, bookingReference: `SEARCH-${tag}`, scheduleId: first.id, scheduleSeatId: rows[5].id, activeScheduleSeatId: rows[5].id, amount: '4500.50' } });
   await db.scheduleSeat.create({ data: { scheduleId: soldOut.id, trainId: train.id, seatId: seats[0].id, status: 'BOOKED' } });

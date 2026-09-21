@@ -4,6 +4,7 @@ import { env } from './config/env.js';
 const server = app.listen(env.port, env.host, () => {
   console.info(`RailConnect API listening at http://${env.host}:${env.port}`);
   app.locals.startHoldCleanup();
+  app.locals.startPaymentWorker();
 });
 
 server.on('error', (error) => {

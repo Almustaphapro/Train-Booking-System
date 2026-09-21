@@ -2,7 +2,7 @@
 
 The public search now compares real database journeys using a transparent multi-criteria decision model. Open `/search`, choose a route and future date, then select **Best Overall**, **Cheapest**, **Earliest**, **Fastest**, or **Most Seats Available**. Each eligible result includes a score, label, explanation, strengths badges and an expandable calculation table. The preference is stored in the URL and survives reloads; changing it returns to the first result page.
 
-This is a rule-based recommendation engine, not a trained machine-learning model. It uses no passenger history or personal data. Phase 7 has not started: recommendations do not select, hold or book seats. Demonstration schedules and fares are not official Nigerian Railway Corporation data.
+This is a rule-based recommendation engine, not a trained machine-learning model. It uses no passenger history or personal data. Phase 7 adds [seat selection and pending bookings](bookings.md) after search, followed by [Phase 8 demo payments](demo-payments.md). Recommendation calculations alone never reserve seats. Phase 9 adds [electronic QR tickets, printing and PDFs](qr-tickets.md). Demonstration schedules and fares are not official Nigerian Railway Corporation data.
 
 ## Model and calculation
 

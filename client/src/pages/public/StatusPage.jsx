@@ -26,7 +26,7 @@ export default function StatusPage() {
           <RefreshCw size={17} aria-hidden="true" />{loading ? 'Checking…' : 'Check again'}
         </button>
       </section>
-      <p className="status-note">This checks service connectivity only. Booking, ticketing and database services are planned for later phases.</p>
+      <p className="status-note">This checks API connectivity only. It does not verify database availability or complete a booking or payment.</p>
     </div>
   );
 }

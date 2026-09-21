@@ -37,7 +37,7 @@ export async function popularDemoRoutes(db, now = new Date()) {
 export async function searchSchedules(db, query, now = new Date()) {
   if (query.date < railwayDate(now)) { const error = new ApiError(422, 'Choose today or a future travel date.'); error.fields = { date: error.message }; throw error; }
   const bounds = travelDayBounds(query.date);
-  await releaseExpiredHolds(db, { schedule: { route: { originStationId: query.originId, destinationStationId: query.destinationId }, departureTime: { gte: bounds.start, lt: bounds.end } } }, now);
+  await releaseExpiredHolds(db, { schedule: { route: { originStationId: query.originId, destinationStationId: query.destinationId }, departureTime: { gte: bounds.start, lt: bounds.end, gt: now } } }, now);
   return db.$transaction(async tx => {
     const stations = await tx.station.findMany({ where: { id: { in: [query.originId, query.destinationId] }, status: 'ACTIVE' }, select: stationSelect });
     const origin = stations.find(station => station.id === query.originId), destination = stations.find(station => station.id === query.destinationId);

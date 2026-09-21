@@ -18,6 +18,9 @@ export default function AuthNavigation() {
   return <div className="auth-nav">
     {user ? <>
       <Link to={roleHome[user.role] ?? '/unauthorized'}>My dashboard</Link>
+      {user.role === 'PASSENGER' && <Link to="/passenger/bookings">My Bookings</Link>}
+      {user.role === 'PASSENGER' && <Link to="/passenger/tickets">My Tickets</Link>}
+      {user.role === 'TICKET_OFFICER' && <Link to="/officer/verify">Verify tickets</Link>}
       <button className="button button-outline" onClick={handleLogout} disabled={busy}><LogOut size={16} aria-hidden="true" />{busy ? 'Signing out…' : 'Sign out'}</button>
     </> : status !== 'loading' && <><Link to="/login">Sign in</Link><Link className="button button-primary" to="/register">Create account</Link></>}
     {error && <span className="nav-error" role="alert">{error}</span>}

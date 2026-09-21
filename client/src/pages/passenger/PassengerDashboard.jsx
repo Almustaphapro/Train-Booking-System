@@ -1,4 +1,5 @@
 import RoleDashboard from '../../components/common/RoleDashboard.jsx';
+import { Link } from 'react-router';
 export default function PassengerDashboard() {
-  return <RoleDashboard title="Passenger dashboard" endpoint="/passenger/dashboard" description="Your personal space for the journeys ahead." planned={['Select seats and book journeys', 'Manage your bookings', 'View your digital tickets']} />;
+  return <><div className="container passenger-actions"><Link className="button button-primary" to="/search">Find a train</Link><Link className="button button-outline" to="/passenger/bookings">My Bookings</Link><Link className="button button-outline" to="/passenger/tickets">My Tickets</Link></div><RoleDashboard title="Passenger dashboard" endpoint="/passenger/dashboard" description="Your personal space for the journeys ahead." planned={['Use officer ticket scanning and boarding']} /></>;
 }

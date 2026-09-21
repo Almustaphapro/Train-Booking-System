@@ -3,8 +3,13 @@
   "version": "0.1.0",
   "private": true,
   "description": "Train transportation platform — application foundation and relational database",
-  "workspaces": ["client", "server"],
-  "engines": { "node": ">=24.11.0" },
+  "workspaces": [
+    "client",
+    "server"
+  ],
+  "engines": {
+    "node": ">=24.11.0"
+  },
   "scripts": {
     "dev:client": "npm run dev --workspace client",
     "dev:server": "npm run dev --workspace server",
@@ -20,7 +25,11 @@
     "test:admin": "npm run test:admin --workspace server",
     "test:search": "npm run test:search --workspace server",
     "test:recommendation": "npm run test:recommendation --workspace server",
-    "auth:secret": "npm run auth:secret --workspace server"
+    "test:booking": "npm run test:booking --workspace server",
+    "test:payment": "npm run test:payment --workspace server",
+    "auth:secret": "npm run auth:secret --workspace server",
+    "test:ticket": "npm run test:ticket --workspace server",
+    "test:officer": "npm run test:officer --workspace server"
   },
   "overrides": {
     "mariadb": "3.5.4",

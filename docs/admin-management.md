@@ -2,7 +2,7 @@
 
 Administrators can manage stations, routes, trains, seats and schedules at `/admin/dashboard`. Each resource has a searchable, paginated table, status filters, create/edit forms, loading and empty states, retryable errors, success notifications and confirmation dialogs. Seat and schedule tables also filter by train; seats filter by class. No browser `alert()` or `confirm()` is used.
 
-These interfaces prepare the network used by the [Phase 5 public train search](public-search.md) and [Phase 6 recommendations](recommendations.md). Reservations, payments and tickets remain outside the current scope; Phase 7 has not started. Seeded schedules and fares remain labelled demonstration data, not official Nigerian Railway Corporation data.
+These interfaces prepare the network used by [public train search](public-search.md), [recommendations](recommendations.md), [Phase 7 reservations](bookings.md) and [Phase 8 demo payments](demo-payments.md). Phase 9 adds [passenger QR tickets and PDFs](qr-tickets.md); officer scanning is deferred. Existing booking-history and held/booked-seat protections continue to apply to admin edits. Seeded schedules and fares remain labelled demonstration data, not official Nigerian Railway Corporation data.
 
 ## Run and use
 

@@ -242,6 +242,7 @@ model Schedule {
   route         Route          @relation(fields: [routeId], references: [id], onDelete: Restrict, onUpdate: Restrict)
   scheduleSeats ScheduleSeat[]
   bookings      Booking[]
+  scanLogs      TicketScanLog[]
 
   @@unique([trainId, departureTime])
   @@unique([id, trainId])
@@ -313,6 +314,11 @@ model Payment {
   paymentMethod        PaymentMethod
   status               PaymentStatus @default(PENDING)
   isDemo               Boolean       @default(false)
+  provider             String?       @db.VarChar(30)
+  idempotencyKey       String?       @unique @db.VarChar(36)
+  demoOutcome          String?       @db.VarChar(10)
+  readyAt              DateTime?     @db.DateTime(3)
+  failureReason        String?       @db.VarChar(255)
   paidAt               DateTime?     @db.DateTime(3)
   createdAt            DateTime      @default(now()) @db.DateTime(3)
   updatedAt            DateTime      @updatedAt @db.DateTime(3)
@@ -346,6 +352,7 @@ model TicketScanLog {
   id               String     @id @default(cuid()) @db.VarChar(30)
   ticketId         String?    @db.VarChar(30)
   officerId        String     @db.VarChar(30)
+  scheduleId       String?    @db.VarChar(30) // Schedule selected by the verifying officer.
   result           ScanResult
   reason           String?    @db.VarChar(500)
   tokenFingerprint String?    @db.Char(64) // SHA-256 fingerprint; never the bearer token.
@@ -355,9 +362,11 @@ model TicketScanLog {
 
   ticket  Ticket? @relation(fields: [ticketId], references: [id], onDelete: Restrict, onUpdate: Restrict)
   officer User    @relation(fields: [officerId], references: [id], onDelete: Restrict, onUpdate: Restrict)
+  schedule Schedule? @relation(fields: [scheduleId], references: [id], onDelete: Restrict, onUpdate: Restrict)
 
   @@index([ticketId, scannedAt])
   @@index([officerId, scannedAt])
+  @@index([scheduleId, scannedAt])
   @@index([result, scannedAt])
   @@index([tokenFingerprint, scannedAt])
 }

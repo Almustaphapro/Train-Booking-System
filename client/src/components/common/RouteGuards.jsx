@@ -1,4 +1,5 @@
-import { Navigate, Outlet } from 'react-router';
+import { Navigate, Outlet, useLocation } from 'react-router';
+import { roleReturnPath } from '../../utils/returnPath.js';
 import { useAuth } from '../../context/AuthContext.jsx';
 import { roleHome } from '../../utils/roles.js';
 
@@ -10,15 +11,17 @@ export function SessionStatus({ status, retry }) {
 }
 
 export function ProtectedRoute({ role }) {
+  const location = useLocation();
   const { user, status, refresh } = useAuth();
   if (status !== 'ready') return <SessionStatus status={status} retry={refresh} />;
-  if (!user) return <Navigate to="/login" replace />;
+  if (!user) return <Navigate to="/login" state={{ from: location.pathname + location.search }} replace />;
   if (user.role !== role) return <Navigate to="/unauthorized" replace />;
   return <Outlet />;
 }
 
 export function GuestRoute() {
+  const location = useLocation();
   const { user, status, refresh } = useAuth();
   if (status !== 'ready') return <SessionStatus status={status} retry={refresh} />;
-  return user ? <Navigate to={roleHome[user.role] ?? '/unauthorized'} replace /> : <Outlet />;
+  return user ? <Navigate to={roleReturnPath(user.role, location.state?.from) || roleHome[user.role] || '/unauthorized'} replace /> : <Outlet />;
 }

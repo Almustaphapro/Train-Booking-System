@@ -4,7 +4,7 @@ The public railway website is available at <http://localhost:5173/>. Visitors ca
 
 The homepage contains navigation, a hero with an original SVG rail illustration, train search, popular demo routes, how it works, secure ticketing information, reasons to use the platform, accessible FAQ accordions and a footer. Planned ticketing is explicitly marked as future functionality. Demo schedules and fares are not official Nigerian Railway Corporation data.
 
-Phase 6 extends this search with [explainable recommendations](recommendations.md). Phase 7 has not started. Searching does not select, hold or reserve a seat. There is no payment or ticket issuance workflow in this phase.
+Phase 6 extends this search with [explainable recommendations](recommendations.md). Phase 7 adds [seat selection and pending bookings](bookings.md), accessed from each result; [Phase 8 demo payments](demo-payments.md) can confirm them and generate demo ticket records. Searching alone does not create a reservation. Phase 9 adds [electronic QR tickets, printing and PDFs](qr-tickets.md); officer scanning is deferred.
 
 ## Start and try it
 
@@ -35,7 +35,7 @@ Existing seed dates remain 20–22 September 2026. The homepage's route cards li
 - A travel date must be a real `YYYY-MM-DD` date, today or later in Nigerian time. Invalid dates such as 30 February and past dates return HTTP 422.
 - Only `SCHEDULED` journeys with departure strictly after the current time are shown. `CANCELLED`, `BOARDING`, `DEPARTED` and `COMPLETED` journeys are excluded.
 - The train, route and both route stations must all be active. Admin changes are reflected in the next search.
-- A seat counts as available only when its ScheduleSeat is `AVAILABLE`, has no hold deadline or active booking claim, and its physical Seat is `ACTIVE`. `HELD`, `BOOKED`, `BLOCKED` and out-of-service seats do not count. An expired hold is still excluded until a later booking service actually releases it.
+- A seat counts as available only when its ScheduleSeat is `AVAILABLE`, has no hold deadline or active booking claim, and its physical Seat is `ACTIVE`. `HELD`, `BOOKED`, `BLOCKED` and out-of-service seats do not count. Phase 7 releases expired holds for matching upcoming journeys before computing search availability and recommendations; a background worker also performs cleanup.
 - A sold-out journey remains visible with **No seats currently available**. A valid search without matching journeys returns HTTP 200 with an empty list and a helpful no-trains state.
 - Results are a snapshot. `Cache-Control: no-store` prevents serving an old cached availability response, but searching does not guarantee that a seat remains available later.
 - Repeatable-read transactions keep station validation, total counts and returned schedules consistent within one search. Existing route/date indexes are reused.
@@ -117,4 +117,4 @@ Verified on 20 September 2026:
 - Homepage, populated results and empty results had no page overflow at 320, 390, 768, 1024 and 1440 pixels. Desktop/mobile screenshots were reviewed; no uncaught browser exceptions were found.
 - Temporary test fixtures were removed. Screenshots and local browser scripts are ignored under `.verification/`.
 
-Booking and seat selection remain for a later phase.
+The historical Phase 5 checks above are extended by the [Phase 7 booking tests](bookings.md#tests-and-defense-explanation).

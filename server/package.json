@@ -11,6 +11,8 @@
     "test:admin": "node --test tests/admin.test.js",
     "test:search": "node --test tests/search.test.js",
     "test:recommendation": "node --test tests/recommendation.integration.test.js",
+    "test:booking": "node --test tests/booking.test.js",
+    "test:payment": "node --test tests/payment.test.js",
     "auth:secret": "node scripts/auth-secret.js",
     "db:validate": "prisma validate",
     "db:generate": "prisma generate",
@@ -19,7 +21,9 @@
     "db:status": "prisma migrate status",
     "db:seed": "prisma db seed",
     "db:verify": "node prisma/verify-seed.js",
-    "test:db": "node --test tests/database.test.js"
+    "test:db": "node --test tests/database.test.js",
+    "test:ticket": "node --test tests/ticket.test.js",
+    "test:officer": "node --test tests/officer.test.js"
   },
   "dependencies": {
     "@prisma/adapter-mariadb": "^7.10.0",
@@ -32,9 +36,13 @@
     "express-rate-limit": "^8.7.0",
     "helmet": "^8.3.0",
     "jsonwebtoken": "^9.0.3",
+    "pdfkit": "^0.20.2",
+    "qrcode": "^1.5.4",
     "zod": "^4.6.5"
   },
   "devDependencies": {
+    "jsqr": "^1.4.0",
+    "pngjs": "^5.0.0",
     "prisma": "^7.10.0"
   }
 }

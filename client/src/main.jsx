@@ -8,6 +8,10 @@ import './styles/auth.css';
 import './styles/admin.css';
 import './styles/public.css';
 import './styles/recommendation.css';
+import './styles/booking.css';
+import './styles/payment.css';
+import './styles/ticket.css';
+import './styles/officer.css';
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>

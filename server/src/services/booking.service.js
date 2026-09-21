@@ -23,7 +23,7 @@ const scheduleInclude = {
   train: { select: { id: true, name: true, code: true, status: true, isDemo: true } },
   route: { select: { status: true, isDemo: true, originStation: { select: stationSelect }, destinationStation: { select: stationSelect } } },
 };
-const bookingInclude = { schedule: { include: scheduleInclude }, scheduleSeat: { include: { seat: true } } };
+const bookingInclude = { schedule: { include: scheduleInclude }, scheduleSeat: { include: { seat: true } }, ticket: { select: { id: true, ticketNumber: true, status: true, issuedAt: true, expiresAt: true } }, payments: { where: { status: 'PAID' }, select: { isDemo: true }, take: 1 } };
 const canReserve = (schedule, now) => schedule.status === 'SCHEDULED' && schedule.departureTime > now &&
   [schedule.train.status, schedule.route.status, schedule.route.originStation.status, schedule.route.destinationStation.status].every(status => status === 'ACTIVE');
 function scheduleDto(schedule) {
@@ -35,6 +35,7 @@ function scheduleDto(schedule) {
 function bookingDto(booking) {
   return { id: booking.id, bookingReference: booking.bookingReference, bookingStatus: booking.bookingStatus, paymentStatus: booking.paymentStatus,
     amount: booking.amount.toFixed(2), currency: booking.currency, expiresAt: booking.expiresAt, createdAt: booking.createdAt,
+    ticket: booking.ticket ? { ...booking.ticket, isDemo: booking.payments.some(row => row.isDemo) } : null,
     schedule: scheduleDto(booking.schedule), seat: { id: booking.scheduleSeat.seatId, seatNumber: booking.scheduleSeat.seat.seatNumber, seatClass: booking.scheduleSeat.seat.seatClass } };
 }
 
@@ -48,9 +49,10 @@ export async function releaseExpiredHolds(db, scope = {}, now = new Date()) {
     for (const inventory of expired) {
       const booking = inventory.activeBooking;
       // A paid/confirmed claim must never be released by the hold worker.
-      if (booking && (booking.bookingStatus !== 'PENDING' || booking.paymentStatus !== 'PENDING')) continue;
+      if (booking && (booking.bookingStatus !== 'PENDING' || !['PENDING', 'FAILED'].includes(booking.paymentStatus))) continue;
       if (booking) {
-        await tx.booking.update({ where: { id: booking.id }, data: { bookingStatus: 'EXPIRED', activeScheduleSeatId: null } });
+        const failed = await tx.payment.updateMany({ where: { bookingId: booking.id, status: 'PENDING' }, data: { status: 'FAILED', failureReason: 'The seat hold expired before payment completed. No money was charged.' } });
+        await tx.booking.update({ where: { id: booking.id }, data: { bookingStatus: 'EXPIRED', activeScheduleSeatId: null, ...(failed.count ? { paymentStatus: 'FAILED' } : {}) } });
         await tx.auditLog.create({ data: { action: 'BOOKING_EXPIRED', entityType: 'Booking', entityId: booking.id } });
       }
       await tx.scheduleSeat.update({ where: { id: inventory.id }, data: { status: inventory.seat.status === 'ACTIVE' ? 'AVAILABLE' : 'BLOCKED', heldUntil: null } });
@@ -119,8 +121,9 @@ export async function cancelPendingBooking(db, userId, id) {
     const booking = await tx.booking.findFirst({ where: { id, userId }, include: { scheduleSeat: { include: { seat: true } } } });
     if (!booking) throw new ApiError(404, 'This booking could not be found.');
     if (booking.bookingStatus === 'CANCELLED') return;
-    if (booking.bookingStatus !== 'PENDING' || booking.paymentStatus !== 'PENDING') throw new ApiError(409, 'Only an unpaid pending reservation can be cancelled here.');
-    await tx.booking.update({ where: { id }, data: { bookingStatus: 'CANCELLED', activeScheduleSeatId: null } });
+    if (booking.bookingStatus !== 'PENDING' || !['PENDING', 'FAILED'].includes(booking.paymentStatus)) throw new ApiError(409, 'Only an unpaid pending reservation can be cancelled here.');
+    const failed = await tx.payment.updateMany({ where: { bookingId: id, status: 'PENDING' }, data: { status: 'FAILED', failureReason: 'The reservation was cancelled before payment completed. No money was charged.' } });
+    await tx.booking.update({ where: { id }, data: { bookingStatus: 'CANCELLED', activeScheduleSeatId: null, ...(failed.count ? { paymentStatus: 'FAILED' } : {}) } });
     await tx.scheduleSeat.update({ where: { id: booking.scheduleSeatId }, data: { status: booking.scheduleSeat.seat.status === 'ACTIVE' ? 'AVAILABLE' : 'BLOCKED', heldUntil: null } });
     await tx.auditLog.create({ data: { userId, action: 'BOOKING_CANCELLED', entityType: 'Booking', entityId: id } });
   });
