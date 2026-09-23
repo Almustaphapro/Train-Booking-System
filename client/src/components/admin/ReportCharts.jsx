@@ -9,7 +9,7 @@ export function TrendChart({ title, rows, field, currency = false }) {
   const x = index => 48 + index * 510 / Math.max(1, rows.length - 1), y = value => 154 - value / maximum * 125;
   const points = rows.map((row, index) => `${x(index)},${y(Number(row[field]))}`).join(' ');
   const format = value => currency ? money(value) : Number(value).toLocaleString();
-  const selected = rows[active ?? rows.length - 1];
+  const selected = rows[Math.min(active ?? rows.length - 1, rows.length - 1)];
   return <section className="monitor-chart"><header><h2>{title}</h2><span>Daily · WAT</span></header>
     {peak === 0 && <p className="monitor-empty">No {currency ? 'paid revenue' : 'bookings'} in this period.</p>}
     <svg viewBox="0 0 600 190" className="monitor-trend" aria-label={`${title}, ${rows.length} days. Exact values are in the data table.`} role="img">
@@ -19,7 +19,7 @@ export function TrendChart({ title, rows, field, currency = false }) {
       <text x="48" y="182">{dateLabel(rows[0].date)}</text><text x="558" y="182" textAnchor="end">{dateLabel(rows.at(-1).date)}</text>
     </svg>
     <label className="chart-inspector">Inspect day <input aria-label={`Inspect ${title.toLowerCase()} day`} type="range" min={0} max={rows.length - 1} value={active ?? rows.length - 1} onChange={event => setActive(Number(event.target.value))}/><output>{dateLabel(selected.date)} · {format(selected[field])}</output></label>
-    <details className="chart-data"><summary>View exact daily data</summary><div className="admin-table-scroll"><table className="admin-table"><caption className="sr-only">{title}</caption><thead><tr><th>Date · WAT</th><th>{currency ? 'NGN' : 'Bookings'}</th></tr></thead><tbody>{rows.map(row => <tr key={row.date}><td>{row.date}</td><td>{format(row[field])}</td></tr>)}</tbody></table></div></details>
+    <details className="chart-data"><summary>View exact daily data</summary><div className="admin-table-scroll" tabIndex={0} role="region" aria-label={`${title} data`}><table className="admin-table"><caption className="sr-only">{title}</caption><thead><tr><th scope="col">Date · WAT</th><th scope="col">{currency ? 'NGN' : 'Bookings'}</th></tr></thead><tbody>{rows.map(row => <tr key={row.date}><td>{row.date}</td><td>{format(row[field])}</td></tr>)}</tbody></table></div></details>
   </section>;
 }
 export function BarChart({ title, rows, emptyText }) {

@@ -101,6 +101,21 @@ test('environment configuration supplies usable development defaults', () => {
   assert.ok(config.clientUrls.includes('http://localhost:5173'));
 });
 
+test('unexpected database errors log only an allowlisted diagnostic code', (context) => {
+  const log = context.mock.method(console, 'error', () => {});
+  const response = { status(value) { assert.equal(value, 500); return this; }, json(value) {
+    assert.deepEqual(value, { success: false, message: 'An unexpected server error occurred.' });
+  } };
+  for (const code of ['P2028', 'password=private', undefined]) {
+    errorHandler(Object.assign(new Error('private database credentials'), { code }), {}, response, () => {});
+  }
+  assert.deepEqual(log.mock.calls.map(call => call.arguments), [
+    ['An unexpected API error occurred (P2028).'],
+    ['An unexpected API error occurred.'],
+    ['An unexpected API error occurred.'],
+  ]);
+});
+
 test('production configuration fails closed without an explicit public frontend origin', () => {
   assert.throws(() => parseEnvironment({ NODE_ENV: 'production' }), /CLIENT_URL/);
   assert.throws(() => parseEnvironment({ NODE_ENV: 'production', CLIENT_URL: 'http://localhost:5173' }), /localhost/);

@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router';
 import { BadgeCheck, ArrowUpRight } from 'lucide-react';
 import { apiClient } from '../../api/client.js';
 import { roleLabel } from '../../utils/roles.js';
+import FeedbackState from './FeedbackState.jsx';
 
 export default function RoleDashboard({ title, endpoint, description, planned = [], ready = [] }) {
   const [user, setUser] = useState(null);
@@ -23,8 +24,8 @@ export default function RoleDashboard({ title, endpoint, description, planned = 
   }, [endpoint, attempt, navigate]);
   return <div className="container dashboard-page">
     <span className="eyebrow">YOUR ACCOUNT</span><h1>{title}</h1><p className="page-description">{description}</p>
-    {!user && !error && <p role="status" className="dashboard-loading">Loading your account…</p>}
-    {error && <div className="form-notice error" role="alert">{error}<button className="button button-outline" onClick={() => setAttempt(value => value + 1)}>Try again</button></div>}
+    {!user && !error && <FeedbackState title="Loading your account…"/>}
+    {error && <FeedbackState kind="error" title="Your account couldn't be loaded" onRetry={() => setAttempt(value => value + 1)}>{error}</FeedbackState>}
     {user && <div className="dashboard-grid">
       <section className="account-card" aria-labelledby="account-heading">
         <div className="account-card-heading"><BadgeCheck size={28} aria-hidden="true" /><span className="badge">{roleLabel[user.role]}</span></div>

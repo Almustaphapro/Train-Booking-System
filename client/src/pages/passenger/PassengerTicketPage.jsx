@@ -4,6 +4,7 @@ import { Download, Printer, ArrowLeft } from 'lucide-react';
 import { useBookingData } from '../../hooks/useBookingData.js';
 import { BookingState } from '../../components/passenger/BookingSummary.jsx';
 import TicketDocument from '../../components/ticket/TicketDocument.jsx';
+import JourneyProgress from '../../components/passenger/JourneyProgress.jsx';
 import { apiClient } from '../../api/client.js';
 
 export default function PassengerTicketPage() {
@@ -24,7 +25,7 @@ export default function PassengerTicketPage() {
       setError(message);
     } finally { setBusy(false); }
   }
-  return <div className="container booking-page ticket-page"><div className="ticket-controls"><Link className="text-link" to="/passenger/tickets"><ArrowLeft size={17}/>My Tickets</Link><span className="eyebrow">READY FOR YOUR JOURNEY</span><h1>Your electronic ticket.</h1><p className="page-description">Keep a copy on your device, or print it for your records.</p></div>
+  return <div className="container booking-page ticket-page"><div className="ticket-controls"><Link className="text-link" to="/passenger/tickets"><ArrowLeft size={17}/>My Tickets</Link><span className="eyebrow">READY FOR YOUR JOURNEY</span><h1>Your electronic ticket.</h1><p className="page-description">Keep a copy on your device, or print it for your records.</p><JourneyProgress step={4}/></div>
     <BookingState {...result}/>
     {ticket && <><div className="ticket-toolbar ticket-controls"><Link className="text-link" to={`/passenger/bookings/${ticket.bookingId}`}>View booking</Link><div><button className="button button-outline" disabled={qrReady !== ticket.id || qrError} onClick={() => window.print()}><Printer size={18}/>Print ticket</button><button className="button button-primary" disabled={busy} onClick={download}><Download size={18}/>{busy ? 'Preparing PDF…' : 'Download PDF'}</button></div></div>
       {notice && <p className="booking-notice success ticket-controls" role="status">{notice}</p>}{error && <p className="booking-notice error ticket-controls" role="alert">{error}</p>}

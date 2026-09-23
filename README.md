@@ -1,312 +1,218 @@
-# RailConnect — Train Transportation Booking and Management System
+# RailConnect
 
-University project: **Design and Implementation of a Secure and Intelligent Web-Based Train Transportation Booking and Management System**.
+## Web-Based Train Transportation Booking and Management System
 
-## Current scope: Phases 1–11
+RailConnect is an academic railway reservation application with explainable train recommendations, electronic tickets, officer boarding verification and fraud monitoring. It addresses fragmented booking records, competing seat reservations, repeated ticket presentation and limited visibility into suspicious activity.
 
-The frontend and backend foundation is implemented. The frontend now has a responsive railway homepage, public train search, a live service-status page and a not-found page. The backend uses consistent JSON responses, restricted CORS, environment validation and centralized error handling.
+**Schedules, fares, payments and tickets are demonstration data, not official Nigerian Railway Corporation services or records. No real money is collected.**
 
-Phase 2 adds the complete Prisma/MySQL schema, migrations, demonstration seed data and database integrity tests. See the [database guide](server/prisma/README.md) for setup, commands, relationship explanations and an ER diagram.
+## Features and user roles
 
-Phase 3 adds passenger registration, login/logout, JWT cookies, revocable database sessions, backend role authorization, protected frontend routes and three basic role dashboards. See the [authentication guide](docs/authentication.md) for setup, endpoints, security choices and tests.
+| Role | Implemented capabilities |
+| --- | --- |
+| Visitor | Responsive public website, database-backed search, explainable recommendations |
+| Passenger | Registration/login, visual seat selection, temporary reservation, demo payment, booking history, QR tickets, print/PDF |
+| Ticket Officer | Camera/manual entry, schedule-specific validation, boarding confirmation, scan activity, duplicate-use rejection |
+| Administrator | Station/route/train/seat/schedule management, booking/payment lists, reports, fraud review, passenger suspension, audit history |
 
-Phase 4 adds the admin management workspace: stations, routes, trains, seats and schedules, with search, filters, pagination, forms, confirmations and audited CRUD APIs. Schedule seats are created automatically. See the [admin management guide](docs/admin-management.md) for usage, API contracts and integrity rules.
+Backend roles and ownership checks protect data independently of frontend navigation. Administrator access does not automatically grant officer boarding permissions.
 
-Phase 5 adds the passenger-facing website and database-backed `GET /api/schedules/search`. Visitors can choose stations and a date, compare train times and fares, and see current available-seat counts without signing in. See the [public website and search guide](docs/public-search.md).
+## Architecture and technology stack
 
-Phase 6 adds explainable train recommendations: five preferences, normalized weighted scores, strengths badges and a visible calculation breakdown. Best Overall balances price (35%), departure (20%), duration (20%) and availability (25%). See the [recommendation guide](docs/recommendations.md) for the model, worked example and tests.
+React communicates with an Express JSON API through Axios. Express validates requests, checks sessions and roles, applies service rules and accesses MySQL through Prisma. Transactions protect related booking, payment, boarding and audit writes. Periodic server workers expire seat holds and settle demonstration payments.
 
-Phase 7 adds visual seat selection, booking review, transactional pending reservations with temporary holds, reservation details and My Bookings. Concurrent requests for the same seat produce one successful reservation and one HTTP 409 conflict. See the [booking guide](docs/bookings.md) for the hold lifecycle and tests.
+| Layer | Technology |
+| --- | --- |
+| Frontend | React 19, Vite 8, React Router, Axios, CSS, Lucide, jsQR |
+| Backend | Node.js 24.11+, Express 5, Zod, Helmet, bcrypt, JWT, cookie-parser, rate limiting |
+| Database | MySQL 8.4, Prisma 7, MySQL-compatible MariaDB driver adapter |
+| Ticket output | qrcode, PDFKit, bundled fonts |
+| Testing | Node test runner, real MySQL fixtures, Edge/Chromium browser harness |
 
-Phase 8 adds an explicitly labelled DEMO PAYMENT ENVIRONMENT with Card, Bank Transfer and USSD options. Server-controlled success confirms the booking, books the seat and generates one demo ticket record; failures can be retried within the existing hold. See the [demo payment guide](docs/demo-payments.md) for scenarios, API contracts and tests.
+Exact dependencies are pinned in `package-lock.json`. No trained machine-learning model or Python service is required.
 
-Phase 9 adds passenger electronic tickets, My Tickets, secure QR codes, printing, PDF downloads and read-only server validation. See the [QR ticket guide](docs/qr-tickets.md) for usage, status rules, API contracts and tests.
+```text
+client/src/
+  api/                  Axios client
+  components/           Shared UI, tables, charts and tickets
+  context/              Authentication state
+  hooks/                Data fetching and UI hooks
+  layouts/              Public, passenger and staff layouts
+  pages/                Public, passenger, admin and officer screens
+  styles/               Responsive design system
+server/
+  prisma/               Schema, SQL migrations, seed and verification
+  scripts/              Authentication-secret setup
+  src/
+    config/             Environment and database configuration
+    middleware/         Authentication, roles and error handling
+    routes/             HTTP endpoints
+    validators/         Backend validation
+    services/           Authentication, administration, search, reservations
+    recommendation/     Normalization, weights and explanations
+    payments/           Demo provider, settlement and worker
+    tickets/            Validation and ticket output
+    officer/            Verification and boarding
+    fraud/              Rules, scoring and alerts
+    monitoring/         Reports, investigations and audit access
+    security/           Request limits and security helpers
+    generated/          Generated Prisma client (ignored)
+  tests/                Unit, database, API and connected-system tests
+scripts/                Local MySQL helper and browser harness
+docs/                   Design, flows, test evidence and defense preparation
+.local/                 Ignored local database, where prepared
+.verification/          Ignored test logs and screenshots
+```
 
-Phase 10 adds the Ticket Officer dashboard, camera/manual verification, schedule checks, atomic boarding confirmation and scan logs. See the [officer verification guide](docs/officer-verification.md).
+## Installation and database setup
 
-Phase 11 adds deterministic suspicious-activity rules, explainable 0–100 anomaly scoring, persisted evidence and admin-only inspection APIs. See the [fraud monitoring guide](docs/fraud-monitoring.md) for thresholds, attribution, a worked example and tests.
-
-Phase 12 has not started. Real payment gateways are **not implemented**. No real money or banking credentials are used. Demonstration schedules, fares and tickets are not official Nigerian Railway Corporation data.
-
-## Prerequisites
-
-- Node.js **24.11 or newer** and npm (verified locally with Node 24.11.1 and npm 11.7.0).
-- A modern browser.
-- MySQL 8.4 for database commands. A workspace-local instance is prepared on port 3307; see the database guide for fresh-checkout setup. The Phase 1 frontend and API liveness endpoint can still run without MySQL.
-
-## Install and configure
-
-Run from the repository root. The two applications are npm workspaces, with one root lockfile and shared dependency installation.
+Install Node.js **24.11 or newer**, npm and MySQL 8.4. Run commands from the repository root. Examples use Windows PowerShell and `npm.cmd`; other shells can use `npm`.
 
 ```powershell
 npm.cmd ci
-Copy-Item client/.env.example client/.env
-Copy-Item server/.env.example server/.env
-npm.cmd run auth:secret
-npm.cmd run db:generate
+if (!(Test-Path server/.env)) { Copy-Item server/.env.example server/.env }
+if (!(Test-Path client/.env)) { Copy-Item client/.env.example client/.env }
 ```
 
-Copy the environment examples only on first setup; preserve any existing local settings. Use `npm` in shells where it works normally; `npm.cmd` avoids PowerShell script execution-policy issues on Windows. On macOS/Linux, use `cp` instead of `Copy-Item`.
+Create a development database, a separate disposable shadow database and a dedicated database user. Configure `server/.env`. The [database setup guide](server/prisma/README.md) provides provisioning SQL and authentication-key instructions. Never use production data for integration tests or the shadow database.
 
-Start MySQL and apply existing migrations before using account features:
+On this prepared workspace, `./scripts/mysql.ps1 start` starts isolated MySQL on `127.0.0.1:3307`. The helper depends on ignored local binaries/data; it is **not a fresh-checkout MySQL installer**. A fresh checkout can use its own MySQL installation and configured port.
+
+## Environment configuration
+
+The backend loads `server/.env`; Vite loads `client/.env`. Root `.env.example` is a reference, not an active environment file. Preserve existing files and credentials.
+
+| Variable | Purpose |
+| --- | --- |
+| `DATABASE_URL` | MySQL URI; URL-encode reserved password characters |
+| `SHADOW_DATABASE_URL` | Separate disposable database for development migration replay |
+| `DATABASE_RSA_PUBLIC_KEY_PATH` | Trusted MySQL public key for local password exchange |
+| `HOST`, `PORT` | API listener, normally `localhost:5000` |
+| `CLIENT_URL` | Exact allowed origins, normally `http://localhost:5173,http://localhost:4173` |
+| `NODE_ENV` | Development locally; production enables Secure cookies |
+| `JWT_SECRET` | Private signing secret, at least 64 hexadecimal characters |
+| `JWT_TTL_SECONDS` | Session lifetime; default 3600 seconds |
+| `ALLOW_DEMO_SEED` | Explicit non-production seed opt-in |
+| `DEMO_ADMIN_PASSWORD`, `DEMO_OFFICER_PASSWORD`, `DEMO_PASSENGER_PASSWORD` | Passwords for newly created demo accounts |
+| `DEMO_START_DATE` | Optional first date for new seed schedules, `YYYY-MM-DD` |
+| `ALLOW_DB_TESTS` | Development database test opt-in; normally false |
+| `DEMO_PAYMENTS_ENABLED` | Enables the academic payment provider |
+| `DEMO_PAYMENT_SCENARIO` | Server-selected `SUCCESS`, `FAILURE` or `FAIL_THEN_SUCCESS` |
+| `VITE_API_BASE_URL` | Public client API URL, normally `http://localhost:5000/api` |
+
+Never put secrets in `VITE_` variables: they are included in browser assets. Environment files, local databases and generated artifacts are ignored. MySQL RSA password exchange is not full network encryption; remote deployment needs separately configured and verified TLS.
+
+## Prisma migrations and seed
+
+After configuring MySQL and demonstration passwords:
 
 ```powershell
-./scripts/mysql.ps1 start
+npm.cmd run auth:secret
+npm.cmd run db:generate
 npm.cmd run db:deploy
+npm.cmd run db:seed
+npm.cmd run db:verify
 ```
 
-For a fresh database, configure the database variables and demonstration accounts using the [database guide](server/prisma/README.md). Preserve existing credentials and data.
+`auth:secret` generates a missing secret without printing or replacing an existing value. Seeding requires `ALLOW_DEMO_SEED=true` and refuses production. Demo passwords require at least 8 characters and at most 72 UTF-8 bytes; public registration is stricter.
 
-## Run locally
+A fresh seed creates Abuja Idu, Kaduna Rigasa, Lagos Mobolaji Johnson and Ibadan Moniya stations; four directional routes; two trains; 48 seats; 12 schedules; 288 schedule-seat records; and three users. Re-seeding preserves existing passwords and schedule dates. If departures are past, create a future schedule through the admin interface; re-seeding does not refresh existing departures.
 
-Open two terminals in the repository root.
+Ten committed migrations include custom SQL constraints and ticket triggers. Inspect them with `npm.cmd run db:status --workspace server`. For a new schema change, use `npm.cmd run db:migrate --workspace server -- --name meaningful_change` on a development database with a separate shadow database. Do not substitute `db push` for the migration history.
 
-Backend:
+## Starting frontend and backend
+
+Backend terminal:
 
 ```powershell
 npm.cmd run dev:server
 ```
 
-Frontend:
+Frontend terminal:
 
 ```powershell
 npm.cmd run dev:client
 ```
 
-- Frontend: http://localhost:5173
-- Public train search: http://localhost:5173/search
-- Service status: http://localhost:5173/status
-- API health: http://localhost:5000/api/health
+Open `http://localhost:5173`. Use `localhost` consistently for cookies. `GET http://localhost:5000/api/health` reports API liveness, not database readiness. If port 5000 is occupied, use the existing backend or stop the identified duplicate process. If changing the port, update the client's API URL and restart Vite. Restart the backend after environment changes.
 
-The server uses Node's built-in watch mode. Vite provides frontend hot reload. Both development servers bind to localhost by default. Stop each with Ctrl+C.
+`npm.cmd run build` creates `client/dist`; `npm.cmd run preview --workspace client` previews it. `npm.cmd run start:server` starts the backend without watch mode. Public deployment still needs TLS, secret management and SPA fallback routing.
 
-Alternatively, from `client/` or `server/`, run `npm.cmd run dev`.
+## Demo accounts
 
-## Environment variables
-
-| Location | Variable | Default / purpose |
+| Role | Email | Password source |
 | --- | --- | --- |
-| `client/.env` | `VITE_API_BASE_URL` | `http://localhost:5000/api`; public API URL, including `/api` |
-| `server/.env` | `NODE_ENV` | `development`, `test` or `production` |
-| `server/.env` | `HOST` | `localhost`; backend bind address |
-| `server/.env` | `PORT` | `5000`; validated integer from 1 to 65535 |
-| `server/.env` | `CLIENT_URL` | Comma-separated exact origins; `http://localhost:5173,http://localhost:4173` |
-| `server/.env` | `DEMO_PAYMENTS_ENABLED` | Defaults true outside production, false in production when absent; accepts `true` or `false` |
-| `server/.env` | `DEMO_PAYMENT_SCENARIO` | `SUCCESS` (default), `FAILURE`, or `FAIL_THEN_SUCCESS`; server-only simulation policy |
+| ADMIN | `admin@example.com` | Local `DEMO_ADMIN_PASSWORD` |
+| TICKET_OFFICER | `officer@example.com` | Local `DEMO_OFFICER_PASSWORD` |
+| PASSENGER | `passenger1@user.com` | Local `DEMO_PASSENGER_PASSWORD` |
 
-The root `.env.example` points to the per-application files; root `.env` is not loaded. Backend configuration loads `server/.env` relative to its module, independent of the launch directory. Process environment values take precedence. Phase 3 requires a valid `JWT_SECRET` before the backend starts. Run `npm.cmd run auth:secret` to fill a missing secret without printing or replacing an existing one. `JWT_TTL_SECONDS` defaults to 3600 (allowed: 300–86400).
+Passwords are in ignored `server/.env`. Email is case-insensitive. Changing environment values does not change existing password hashes. Presentation credentials belong only in an isolated demo environment.
 
-Do not put secrets in `VITE_` variables; Vite includes them in public browser assets. Restart development servers after configuration changes, and rebuild the frontend for changes to production configuration. If you change the API port, update `VITE_API_BASE_URL`. If you change the frontend origin, update `CLIENT_URL` (origins must not end with a slash).
+## API overview
 
-Phase 2 also uses `DATABASE_URL`, `DATABASE_RSA_PUBLIC_KEY_PATH`, `SHADOW_DATABASE_URL`, `ALLOW_DEMO_SEED`, `DEMO_START_DATE` and three `DEMO_*_PASSWORD` variables in `server/.env`. The [database guide](server/prisma/README.md) covers these and the optional `ALLOW_DB_TESTS` flag. Preserve existing local credentials when updating environment files.
+Paths start with `/api`. Mutations accept validated JSON; browser mutations require the permitted origin and `X-Requested-With: XMLHttpRequest`. Axios includes credentials. Detailed request contracts are linked in the [documentation index](docs/README.md).
 
-## Architecture and folders
+| Area | Main endpoints | Access |
+| --- | --- | --- |
+| Public | `GET /health`, `/stations`, `/routes/popular`, `/schedules/search`, `/schedules/:id/seats` | Public |
+| Authentication | `POST /auth/register`, `/auth/login`, `/auth/logout`; `GET /auth/me` | Public/session as appropriate |
+| Booking/payment | `/bookings`, booking detail/cancellation, `POST /bookings/:id/payments`, payment retrieval | Passenger, own records |
+| Tickets | Ticket list/detail/PDF under `/tickets` | Passenger, own records |
+| Boarding | `GET /officer/schedules`, `/officer/activity`; `POST /officer/verify`, `/officer/board` | Officer |
+| Core management | `/admin/stations`, `/admin/routes`, `/admin/trains`, seat and schedule resources | Admin |
+| Reports | `GET /admin/monitoring`, `/admin/bookings`, `/admin/payments` | Admin |
+| Investigations | `/admin/fraud-alerts`, review/investigation actions, `/admin/passengers/:id/status` | Admin |
+| Audit | `GET /admin/audit-logs` | Admin |
 
-```text
-.
-├── client/
-│   ├── public/
-│   ├── src/
-│   │   ├── api/                 # Credentialed Axios, health and authentication requests
-│   │   ├── assets/
-│   │   ├── components/
-│   │   │   ├── common/
-│   │   │   ├── passenger/
-│   │   │   ├── admin/
-│   │   │   └── ticket/
-│   │   ├── context/
-│   │   ├── hooks/               # Request state and cancellation
-│   │   ├── layouts/             # Shared public navigation and footer
-│   │   ├── pages/
-│   │   │   ├── public/          # Overview, status, not found
-│   │   │   ├── passenger/
-│   │   │   ├── admin/
-│   │   │   └── officer/
-│   │   ├── styles/              # Design tokens and responsive CSS
-│   │   ├── utils/
-│   │   ├── App.jsx
-│   │   └── main.jsx
-│   ├── .env.example
-│   ├── index.html
-│   ├── package.json
-│   └── vite.config.js
-├── server/
-│   ├── prisma/                 # Schema, migrations, demo seed and verification
-│   ├── src/
-│   │   ├── config/             # Environment, database, cookies and CORS
-│   │   ├── controllers/
-│   │   ├── middleware/         # Authentication, authorization, CSRF and errors
-│   │   ├── routes/
-│   │   ├── services/
-│   │   ├── utils/
-│   │   ├── validators/
-│   │   ├── security/
-│   │   ├── recommendation/
-│   │   ├── payments/            # Demo provider, settlement and background worker
-│   │   ├── tickets/             # Private QR tickets, server verification and PDFs
-│   │   ├── officer/             # Verification, boarding and scan logs
-│   │   ├── fraud/               # Rules, explainable scoring and persisted alerts
-│   │   ├── app.js              # HTTP middleware and routes
-│   │   └── server.js           # Listener and shutdown lifecycle
-│   ├── tests/foundation.test.js
-│   ├── .env.example
-│   └── package.json
-├── .env.example
-├── .gitignore
-├── package.json
-├── package-lock.json
-└── README.md
-```
+Admin booking/payment lists are read-only. Clients cannot set payment success or arbitrary booking status. Reports use actual records and Africa/Lagos calendar boundaries; revenue represents successful demonstration payments.
 
-Empty future-phase directories contain `.gitkeep` files so the agreed structure survives version control. No future business functionality is scaffolded into working routes.
+## Security controls
 
-The request flow is **React page → Axios → Express middleware → controller/service → Prisma → MySQL**. React Router provides public pages, `/login`, `/register`, `/unauthorized` and protected `/passenger/dashboard`, `/admin/dashboard`, `/officer/dashboard` routes. The shared Axios client has an API base URL and a 10-second timeout. The status hook cancels obsolete requests, supports retry, and handles loading, success and failure.
+- bcrypt cost 12 password hashing; hashes excluded from responses.
+- Signed, expiring JWTs in HttpOnly, SameSite=Lax cookies; Secure in production. Database sessions support logout revocation and immediate role/suspension enforcement.
+- Backend role/ownership checks, strict validation, explicit CORS, mutation origin/header checks, Helmet, request-size limits and API/auth/payment/scan throttling.
+- Prisma queries, database constraints and server-controlled prices, inventory and payment outcomes.
+- Random references and QR tokens; no passenger details in QR contents.
+- Sanitized audit metadata, generic unexpected-error responses and safe diagnostic codes without raw database messages or credentials.
 
-The CSS system defines colors, spacing, border radii, typography and surfaces centrally in `tokens.css`. Shared layout and component classes live in `global.css`, with keyboard focus indicators, a skip link, responsive breakpoints and accessible status announcements. Icons use Lucide; the decorative rail artwork is an original SVG component.
+These controls are not a penetration-test certification. See [authentication](docs/authentication.md).
 
-## Dependencies
+## Recommendation engine
 
-- Client runtime: `react`, `react-dom`, `react-router`, `axios`, `lucide-react`, `jsqr` (loaded when camera scanning starts).
-- Client build tooling: `vite`, `@vitejs/plugin-react`.
-- Server runtime: `express`, `cors`, `dotenv`, `@prisma/client`, `@prisma/adapter-mariadb`, `bcrypt`, `cookie-parser`, `express-rate-limit`, `helmet`, `jsonwebtoken`, `zod`, `qrcode`, `pdfkit`.
-- Database tooling: `prisma`.
-- Backend tests and watch mode: built into Node.js; `jsqr` and `pngjs` decode generated QR images in ticket tests.
+The multi-criteria engine normalizes fare, departure, duration and available seats across eligible results. Best Overall weights price **35%**, departure **20%**, duration **20%** and availability **25%**, producing a relative 0–100 score. Other preferences emphasize their selected factor. Results include explanations and badges; sold-out options are not recommended. This is deterministic decision support, not trained AI or a prediction of service quality. See [formulas and worked example](docs/recommendations.md).
 
-Exact installed versions are recorded in `package-lock.json`. Root overrides select patched `mariadb`, `deepmerge-ts` and `mysql2` transitive dependencies. Ticket PDFs bundle openly licensed Noto Sans fonts. Real gateway integration remains deferred.
+## Fraud detection and anomaly score
 
-## API and error behavior
+Rules detect used-ticket re-presentation, five invalid scans in ten minutes, more than eight booking attempts in ten minutes, three payment declines in thirty minutes and unusually high cancellation activity with enough history. A separate weighted score yields LOW (0–29), MEDIUM (30–59), HIGH (60–79) or CRITICAL (80–100). Alerts retain reasons and factors for human review; rule priority can differ from calculated anomaly score. The system does not automatically label someone a fraudster or suspend them. See [fraud monitoring](docs/fraud-monitoring.md).
 
-`GET /api/health` returns HTTP 200:
+## QR verification and double-booking prevention
 
-```json
-{
-  "success": true,
-  "message": "API is running.",
-  "data": {
-    "status": "ok",
-    "service": "RailConnect API",
-    "timestamp": "<current ISO timestamp>",
-    "uptimeSeconds": 0
-  }
-}
-```
+Successful server-controlled payment settlement creates one ticket. Its QR contains only a random 32-byte bearer token. The officer selects a schedule, verifies current database state and confirms boarding. An atomic transition marks the ticket USED and records the scan and timestamp. Later presentations are rejected and create HIGH duplicate-use alerts. A copied QR can still be presented first; staff identity checks remain necessary.
 
-The timestamp and uptime reflect the running process. The endpoint is a liveness check; it does not verify a database or future business services. Responses disable caching.
+Reservations combine a database transaction, conditional seat claim and unique active booking claim. Competing requests for the same schedule-seat produce one success and HTTP 409 for the loser. Holds normally last ten minutes, bounded by departure; expiry releases the seat. See [booking](docs/bookings.md), [tickets](docs/qr-tickets.md) and [officer verification](docs/officer-verification.md).
 
-Unknown endpoints return 404. Disallowed browser origins return 403. Invalid JSON returns 400, oversized bodies return 413, and unexpected errors return 500 without stack traces or internal messages. CORS allows credentials, configured exact origins and GET/HEAD/POST/PUT/DELETE/OPTIONS; requests without `Origin` are permitted for command-line and server clients. Authentication and admin mutations require JSON and `X-Requested-With: XMLHttpRequest` and reject cross-site browser requests. CORS does not replace authentication or role authorization.
-
-## Verify
+## Testing commands
 
 ```powershell
 npm.cmd test
+$env:ALLOW_DB_TESTS = 'true'
+npm.cmd run test:all
+Remove-Item Env:ALLOW_DB_TESTS
 npm.cmd run build
-Invoke-RestMethod http://localhost:5000/api/health | ConvertTo-Json -Depth 4
+npm.cmd run db:validate --workspace server
+npm.cmd run db:status --workspace server
 ```
 
-The backend tests cover health output, CORS and preflight, unknown routes, malformed JSON, body-size limits, safe asynchronous error handling, and invalid environment configuration. To verify browser communication, open `/status`: it must display **Service is online** and the last-check time. Stop the backend and click **Check again** to verify the unavailable state, then restart it and retry.
+`test:all` includes connected-system tests. Individual suites: `test:auth`, `test:admin`, `test:search`, `test:recommendation`, `test:booking`, `test:payment`, `test:ticket`, `test:officer`, `test:fraud`, `test:db`, `test:system`. Run database suites sequentially on a development/test database; fixtures create and clean up their own records. For `test:browser`, start Vite and an isolated Edge debugging profile as described in [system testing](docs/system-testing.md).
 
-### Phase 1 verification results
+See [final verification status](docs/final-status.md) for actual results and the intermittent authentication failure observed in an earlier rerun.
 
-Verified on 19 September 2026:
+## Known limitations and future improvements
 
-- Production frontend build passed.
-- All 10 backend tests passed.
-- Both development servers started successfully.
-- A real headless Edge browser received HTTP 200 from the API through the frontend Axios request.
-- The unavailable state and retry recovery passed with the health request temporarily blocked in the verification browser.
-- Direct `/status` reloads, the not-found page and its return link passed.
-- No uncaught browser JavaScript exceptions or horizontal page overflow were found at 320, 390, 768 and 1440 pixels; desktop and mobile screenshots were also reviewed.
-- npm reported zero known vulnerabilities during installation.
+Payments are simulated. There is no real gateway/refund workflow, email verification, password reset or offline boarding. Camera decoding and responsive widths have automated coverage, but physical cameras, Safari/Firefox and physical mobile devices need testing. Local race tests do not establish production performance. Rate-limit state is process-local. Fraud thresholds need real evaluation and are not fraud probabilities. Audit history is append-oriented through APIs, not cryptographically tamper-proof against a database administrator.
 
-The coding environment initially blocked npm network access and Windows subprocesses (`spawn EPERM`). Installation, build, tests and development servers succeeded using authorized execution outside that sandbox. These were environment restrictions rather than application defects. Browser verification uses an isolated local profile; temporary screenshots and tooling are ignored under `.verification/`.
+Future work: verified gateway webhooks/refunds, identity checks, account recovery, notifications, shared rate-limit storage, production TLS/secrets, backup/restore drills, observability and load/security testing. Governed labelled data could support evaluated machine-learning models alongside explainable rules.
 
-To preview the production frontend build locally:
+## Documentation and defense
 
-```powershell
-npm.cmd run build
-npm.cmd run preview --workspace client
-```
-
-Open http://localhost:4173; keep the backend running. For the backend without file watching, run `npm.cmd run start:server`. A future frontend deployment must route unknown document paths to `index.html` so React Router deep links work. The API must be hosted separately and its URL supplied at frontend build time.
-
-## Troubleshooting and phase boundary
-
-- **Port in use:** stop the conflicting service or change the port and matching frontend/CORS configuration. Vite uses `strictPort` to avoid silently choosing an unapproved origin.
-- **Status unavailable:** confirm the backend is running, check `VITE_API_BASE_URL`, and ensure the browser origin is in `CLIENT_URL`. Use `localhost` consistently rather than mixing it with `127.0.0.1`.
-- **Invalid configuration:** the backend stops with a specific variable-validation error before listening.
-- **Package installation:** registry access is required for the initial dependency install; local network policies may require permission.
-
-Phases 1–11 are implemented. Phase 12 has not started. Read the [authentication guide](docs/authentication.md) before deployment, including HTTPS, same-site hosting and rate-limit storage requirements. The [admin management guide](docs/admin-management.md), [public search guide](docs/public-search.md), [recommendation guide](docs/recommendations.md), [booking guide](docs/bookings.md), [demo payment guide](docs/demo-payments.md), [QR ticket guide](docs/qr-tickets.md), [officer verification guide](docs/officer-verification.md) and [fraud monitoring guide](docs/fraud-monitoring.md) describe the current interfaces and tests.
-
-Framework references: [Vite guide](https://vite.dev/guide/), [React Router declarative setup](https://reactrouter.com/start/declarative/installation), [Express error handling](https://expressjs.com/en/guide/error-handling/).
-
-## Phase 2 files created or updated
-
-- `server/prisma/schema.prisma`: all 13 relational models and enums.
-- `server/prisma/migrations/`: initial schema, 16 CHECK constraints, two ticket guards and the provider lock.
-- `server/prisma/demo-data.js`, `seed.js`, `verify-seed.js`: labelled demonstration fixtures, repeatable seeding and record verification.
-- `server/prisma.config.js`, `server/src/config/database.js`: Prisma configuration and MySQL client creation.
-- `server/tests/database.test.js`: database integrity and concurrency tests.
-- `scripts/mysql.ps1`: start, stop and inspect the isolated local MySQL instance.
-- Root/server `package.json`, `package-lock.json`, `.gitignore`, `server/.env.example`, local ignored `server/.env`, and both README files: dependencies, scripts, configuration and documentation.
-
-The [database guide](server/prisma/README.md) records the passing checks, setup issues resolved and remaining application-phase boundaries. No frontend files were changed in Phase 2.
-
-## Phase 1 file inventory (historical)
-
-The workspace was initially empty. All files below were created during Phase 1; no existing work was overwritten. Local `.env` files are ignored by Git. Build output, installed packages and temporary verification artifacts are excluded.
-
-```text
-.env.example
-.gitignore
-client\.env
-client\.env.example
-client\index.html
-client\package.json
-client\public\favicon.svg
-client\src\api\client.js
-client\src\api\health.js
-client\src\App.jsx
-client\src\assets\.gitkeep
-client\src\components\admin\.gitkeep
-client\src\components\common\Brand.jsx
-client\src\components\passenger\.gitkeep
-client\src\components\ticket\.gitkeep
-client\src\context\.gitkeep
-client\src\hooks\useHealth.js
-client\src\layouts\PublicLayout.jsx
-client\src\main.jsx
-client\src\pages\admin\.gitkeep
-client\src\pages\officer\.gitkeep
-client\src\pages\passenger\.gitkeep
-client\src\pages\public\HomePage.jsx
-client\src\pages\public\NotFoundPage.jsx
-client\src\pages\public\StatusPage.jsx
-client\src\styles\global.css
-client\src\styles\tokens.css
-client\src\utils\.gitkeep
-client\vite.config.js
-package.json
-package-lock.json
-README.md
-server\.env
-server\.env.example
-server\package.json
-server\prisma\README.md
-server\src\app.js
-server\src\config\cors.js
-server\src\config\env.js
-server\src\controllers\health.controller.js
-server\src\fraud\.gitkeep
-server\src\middleware\errorHandler.js
-server\src\middleware\notFound.js
-server\src\recommendation\.gitkeep
-server\src\routes\index.js
-server\src\security\.gitkeep
-server\src\server.js
-server\src\services\.gitkeep
-server\src\utils\ApiError.js
-server\src\validators\.gitkeep
-server\tests\foundation.test.js
-```
-# Train-Booking-System
+Read the [documentation index](docs/README.md), [architecture](docs/architecture.md), [database relationships](docs/database-relationships.md) and [18-question defense guide](docs/defense-guide.md). These distinguish demonstrated behavior from limitations and future work.

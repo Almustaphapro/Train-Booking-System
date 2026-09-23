@@ -25,6 +25,7 @@ import PassengerTicketPage from './pages/passenger/PassengerTicketPage.jsx';
 import FraudMonitoringPage from './pages/admin/FraudMonitoringPage.jsx';
 import FraudAlertDetailPage from './pages/admin/FraudAlertDetailPage.jsx';
 import AuditLogsPage from './pages/admin/AuditLogsPage.jsx';
+import ActivityRecordsPage from './pages/admin/ActivityRecordsPage.jsx';
 
 export default function App() {
   return (
@@ -54,6 +55,7 @@ export default function App() {
           <Route path="fraud" element={<FraudMonitoringPage />} />
           <Route path="fraud/:id" element={<FraudAlertDetailPage />} />
           <Route path="audit-logs" element={<AuditLogsPage />} />
+          {['bookings', 'payments'].map(resource => <Route key={resource} path={resource} element={<ActivityRecordsPage key={resource} resource={resource}/>}/>)}
           {['stations', 'routes', 'trains', 'seats', 'schedules'].map(resource => <Route key={resource} path={resource} element={<ManagementPage key={resource} resource={resource} />} />)}
         </Route></Route>
         <Route element={<ProtectedRoute role="TICKET_OFFICER" />}><Route path="officer/dashboard" element={<OfficerDashboard />} /><Route path="officer/verify" element={<OfficerVerifyPage />} /></Route>

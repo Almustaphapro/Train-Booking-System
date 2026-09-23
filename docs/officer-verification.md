@@ -110,4 +110,4 @@ The browser checks found and fixed a cleanup error when permission was denied be
 
 No new secret or environment variable is required. Existing `.env` settings and demo credentials were preserved.
 
-Phase 11 now adds [fraud rules and explainable anomaly scoring](fraud-monitoring.md). Each rejected duplicate presentation stores a HIGH alert in the scan transaction; repeated invalid scans produce contextual alerts. The verification results above describe Phase 10. Real payment integration remains deferred, and Phase 12 has not started.
+Phase 11 adds [fraud rules and explainable anomaly scoring](fraud-monitoring.md). Each rejected duplicate presentation stores a HIGH alert in the scan transaction; repeated invalid scans produce contextual alerts. Administrator monitoring and review are now implemented. The verification results above describe Phase 10; consult the [final status](final-status.md) for current results. Real payment integration remains unimplemented.

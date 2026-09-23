@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { ArrowRight, Clock3 } from 'lucide-react';
 import { fare, journeyDate, journeyTime } from '../../utils/journeys.js';
+import FeedbackState from '../common/FeedbackState.jsx';
 
 export function BookingSummary({ schedule, seat, amount }) {
   return <section className="booking-summary"><span className="eyebrow">YOUR JOURNEY</span><h2>{schedule.train.name}</h2><p className="booking-route">{schedule.origin.name}<ArrowRight size={18} aria-hidden="true"/>{schedule.destination.name}</p>
@@ -17,6 +18,7 @@ export function HoldCountdown({ booking, serverTime, receivedAt }) {
   const seconds = Math.max(0, Math.ceil((new Date(booking.expiresAt).getTime() - (now + offset)) / 1000));
   return <p className="hold-countdown"><Clock3 size={18} aria-hidden="true"/>{seconds ? <>Seat hold ends in <strong>{Math.floor(seconds / 60)}:{String(seconds % 60).padStart(2, '0')}</strong></> : 'Hold time ended. Checking reservation status…'}</p>;
 }
-export function BookingState({ loading, error, refresh }) {
-  return <>{loading && <p className="booking-notice" role="status">Loading your journey…</p>}{error && <div className="booking-notice error" role="alert"><p>{error}</p><button className="button button-outline" onClick={refresh}>Try again</button></div>}</>;
+export function BookingState({ loading, refreshing, error, refresh }) {
+  if (error) return <FeedbackState kind="error" title="We couldn't load the latest information" onRetry={refresh}>{error}</FeedbackState>;
+  return loading ? <FeedbackState title={refreshing ? 'Updating your journey…' : 'Loading your journey…'}/> : null;
 }

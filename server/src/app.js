@@ -23,7 +23,7 @@ import { notFound } from './middleware/notFound.js';
 import { errorHandler } from './middleware/errorHandler.js';
 import { createApiLimiter } from './security/apiRateLimit.js';
 
-export function createApp({ database, authConfig = parseAuthConfig(), authRateLimits, paymentConfig = parsePaymentConfig() } = {}) {
+export function createApp({ database, authConfig = parseAuthConfig(), authRateLimits, paymentRateLimits, paymentConfig = parsePaymentConfig() } = {}) {
   let connection;
   const getDatabase = () => database ?? (connection ??= createDatabaseClient());
   const app = express();
@@ -37,7 +37,7 @@ export function createApp({ database, authConfig = parseAuthConfig(), authRateLi
   app.use('/api', createPublicRouter(getDatabase));
   app.use('/api/auth', createAuthRouter(getDatabase, authConfig, authRateLimits));
   app.use('/api/bookings', createBookingRouter(getDatabase, authConfig));
-  app.use('/api', createPaymentRouter(getDatabase, authConfig, paymentConfig));
+  app.use('/api', createPaymentRouter(getDatabase, authConfig, paymentConfig, paymentRateLimits));
   app.use('/api/tickets', createTicketRouter(getDatabase, authConfig));
   app.use('/api/officer', createOfficerRouter(getDatabase, authConfig));
   app.use('/api/admin/fraud-alerts', createFraudRouter(getDatabase, authConfig));

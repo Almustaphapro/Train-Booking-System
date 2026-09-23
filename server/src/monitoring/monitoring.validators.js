@@ -14,6 +14,8 @@ export const auditQuery = z.strictObject({ ...pagination, from: dateField.option
 export const noteField = z.string().trim().min(10).max(1000);
 export const reviewBody = z.strictObject({ status: z.enum(['UNDER_REVIEW', 'RESOLVED', 'DISMISSED']), note: noteField, expectedUpdatedAt: z.iso.datetime() });
 export const investigationBody = z.strictObject({ note: noteField });
+export const activityQuery = resource => z.strictObject({ ...pagination, q: z.string().trim().max(100).optional(), from: dateField.optional(), to: dateField.optional(),
+  status: z.enum(resource === 'bookings' ? ['PENDING', 'CONFIRMED', 'CANCELLED', 'COMPLETED', 'EXPIRED'] : ['PENDING', 'PAID', 'FAILED', 'REFUNDED']).optional() });
 export const passengerStatusBody = z.strictObject({ status: z.enum(['ACTIVE', 'SUSPENDED']), expectedStatus: z.enum(['ACTIVE', 'SUSPENDED']), note: noteField });
 
 export function parse(schema, input) {

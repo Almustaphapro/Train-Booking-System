@@ -3,6 +3,7 @@ import { Link, useParams } from 'react-router';
 import { CreditCard, Landmark, Smartphone, CheckCircle2, Clock3, XCircle } from 'lucide-react';
 import { useBookingData } from '../../hooks/useBookingData.js';
 import { BookingSummary, BookingState, HoldCountdown } from '../../components/passenger/BookingSummary.jsx';
+import JourneyProgress from '../../components/passenger/JourneyProgress.jsx';
 import DemoPaymentBanner from '../../components/passenger/DemoPaymentBanner.jsx';
 import { apiClient } from '../../api/client.js';
 import { fare } from '../../utils/journeys.js';
@@ -30,7 +31,7 @@ export default function DemoPaymentPage() {
       setError(failure.response?.data?.message ?? 'The response was interrupted. Check the payment history before retrying; no real money is charged.'); history.refresh(); bookingData.refresh();
     } finally { submitting.current = false; setBusy(false); }
   }
-  return <div className="container booking-page payment-page"><Link className="text-link" to={`/passenger/bookings/${id}`}>Back to reservation</Link><span className="eyebrow">DEMO CHECKOUT</span><h1>Complete your demonstration booking.</h1><DemoPaymentBanner/>
+  return <div className="container booking-page payment-page"><Link className="text-link" to={`/passenger/bookings/${id}`}>Back to reservation</Link><span className="eyebrow">DEMO CHECKOUT</span><h1>Complete your demonstration booking.</h1><JourneyProgress step={3}/><DemoPaymentBanner/>
     <BookingState {...bookingData}/><BookingState {...history}/>{error && <p className="booking-notice error" role="alert">{error}</p>}
     {booking && <div className="booking-columns"><BookingSummary schedule={booking.schedule} seat={booking.seat} amount={booking.amount}/><section className="reservation-panel demo-checkout"><h2>Choose a simulated payment method</h2><p>These options demonstrate the checkout flow. No banking information is requested.</p>
       <fieldset className="demo-payment-methods" disabled={busy || pending || !payable}><legend>Demo payment method</legend>{methods.map(([value, label, Icon]) => <label key={value} className={method === value ? 'chosen' : ''}><input type="radio" name="paymentMethod" value={value} checked={method === value} onChange={() => { setMethod(value); request.current = null; }}/><Icon size={22} aria-hidden="true"/><span>{label}</span></label>)}</fieldset>

@@ -22,7 +22,10 @@ export function errorHandler(error, _request, response, next) {
 
   if (statusCode >= 500) {
     // Avoid logging request bodies, credentials or arbitrary error messages.
-    console.error('An unexpected API error occurred.');
+    // A Prisma error code helps distinguish transaction/connection failures.
+    // Never print the error message, SQL arguments, request or credentials.
+    const code = typeof error.code === 'string' && /^P\d{4}$/.test(error.code) ? ` (${error.code})` : '';
+    console.error(`An unexpected API error occurred${code}.`);
   }
 
   return response.status(statusCode).json({ success: false, message,

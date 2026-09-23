@@ -1,6 +1,6 @@
 # Phase 2 — relational database
 
-Prisma 7.10 connects the JavaScript backend to **MySQL 8.4** using `@prisma/adapter-mariadb`, which supports MySQL as well as MariaDB. All 13 domain tables are implemented. Phase 3 adds a fourteenth table, `AuthSession`, and authentication APIs; booking APIs remain deferred. See the [authentication guide](../../docs/authentication.md).
+Prisma 7.10 connects the JavaScript backend to **MySQL 8.4** using `@prisma/adapter-mariadb`, which supports MySQL as well as MariaDB. All 13 domain tables and the supporting `AuthSession` table are implemented. Authentication, reservations, demo payments, ticket boarding and administrator monitoring use these relationships. See the [database explanation](../../docs/database-relationships.md) and [latest verification status](../../docs/final-status.md). Phase-labelled results below are historical.
 
 ## Use the database prepared in this workspace
 
@@ -138,11 +138,11 @@ For a future intentional schema change, use `npm.cmd run db:migrate --workspace 
 
 Database tests create fixtures with random identifiers. Ordinary tests roll back; committed race-test fixtures are removed by their exact IDs. Tests refuse production and require `ALLOW_DB_TESTS=true`. Coverage includes all 13 tables, uniqueness, foreign keys, parent-delete restrictions, invalid CHECK values, cancelled-seat reuse, ticket eligibility/uniqueness, scan/fraud/audit links and simultaneous booking inserts. The race must produce one success and one Prisma `P2002` conflict; HTTP conflict handling belongs to the later API.
 
-## Boundaries for later phases
+## Integrity across application workflows
 
 The prepared driver connection is intended for local development. The pinned RSA public key protects password exchange, not all database traffic. A future remote deployment must add verified TLS configuration.
 
-Phase 4 admin APIs enforce capacity, journey overlap and physical-seat availability rules. See the [admin guide](../../docs/admin-management.md). Phase 7 [booking services](../../docs/bookings.md) atomically synchronize active claims and `ScheduleSeat.status`, reject unavailable inventory, expire holds and enforce passenger ownership. The sixth migration adds `Booking.expiresAt`. Phase 8 [demo payments](../../docs/demo-payments.md) add durable payment intents in the seventh migration and atomically confirm payment, booking, booked inventory and one ticket. Ticket tokens use cryptographic randomness and are not exposed by Phase 8 APIs. Phase 9 adds [owner-protected QR ticket pages, PDF downloads and read-only server validity checks](../../docs/qr-tickets.md) using the existing schema. Phase 10 adds [officer verification and atomic boarding](../../docs/officer-verification.md). The eighth migration binds scan logs to schedules, preserving existing logs. Phase 11 adds [fraud rules and explainable anomaly scoring](../../docs/fraud-monitoring.md). The ninth migration adds a unique event deduplication key and monitoring indexes without resetting existing data. Refund and fraud-review mutation workflows remain deferred.
+Admin APIs enforce capacity, journey overlap and physical-seat availability rules; see the [admin guide](../../docs/admin-management.md). [Booking services](../../docs/bookings.md) synchronize active claims and inventory, expire holds and enforce ownership. The sixth migration adds booking expiry. [Demo payments](../../docs/demo-payments.md) add durable intents in the seventh migration and atomically confirm payment, booking, inventory and one ticket. [Owner-protected tickets](../../docs/qr-tickets.md) expose QR/PDF output. [Officer verification](../../docs/officer-verification.md) consumes tickets atomically; the eighth migration binds scans to schedules. [Fraud monitoring](../../docs/fraud-monitoring.md) uses the ninth migration's event deduplication and indexes. Administrator reviews, investigation, suspension and audit history are implemented; the tenth migration adds reporting indexes. Real payments and refunds remain unimplemented.
 
 ## Verified results — 20 September 2026
 

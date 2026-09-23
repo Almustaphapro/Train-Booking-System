@@ -17,6 +17,15 @@
   --color-success-bg: #e7f2e9;
   --color-warning-bg: #fff3d8;
   --color-danger-bg: #fbe8e6;
+  --color-border-strong: #8a9c90;
+  --color-info: #294d78;
+  --color-info-bg: #eaf0fa;
+  --color-critical: #7f1d36;
+  --color-critical-bg: #fce8ef;
+  --font-small: 0.875rem;
+  --font-caption: 0.8125rem;
+  --page-gutter: clamp(1rem, 4vw, 2rem);
+  --panel-padding: clamp(1rem, 2.5vw, 1.75rem);
   --space-1: 0.25rem;
   --space-2: 0.5rem;
   --space-3: 0.75rem;
@@ -29,7 +38,7 @@
   --radius-md: 1rem;
   --radius-lg: 1.5rem;
   --radius-pill: 100vmax;
-  --control-height: 46px;
+  --control-height: 48px;
   --focus-ring: 0 0 0 3px color-mix(in srgb, var(--color-focus) 28%, transparent);
   --font-body: 'Segoe UI', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
   --shadow-card: 0 12px 40px rgb(26 54 38 / 5%);

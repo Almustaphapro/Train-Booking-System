@@ -4,6 +4,7 @@ import { Armchair, ArrowRight, RefreshCw } from 'lucide-react';
 import { useBookingData } from '../../hooks/useBookingData.js';
 import { BookingSummary, BookingState } from '../../components/passenger/BookingSummary.jsx';
 import { fare } from '../../utils/journeys.js';
+import JourneyProgress from '../../components/passenger/JourneyProgress.jsx';
 
 const labels = { AVAILABLE: 'Available', SELECTED: 'Selected', HELD: 'Held', BOOKED: 'Booked', BLOCKED: 'Unavailable' };
 export default function SeatSelectionPage() {
@@ -12,7 +13,7 @@ export default function SeatSelectionPage() {
   const selected = result.data?.seats.find(seat => seat.id === selectedId);
   const valid = selected?.status === 'AVAILABLE' && result.data?.reservable && !result.error;
   return <div className="container booking-page"><Link className="text-link" to="/search">Back to train search</Link><span className="eyebrow">1 / CHOOSE YOUR SEAT</span><h1>A place for your journey.</h1><p className="page-description">Choose one seat. It will only be held after you review and create a pending booking.</p>
-    <BookingState {...result}/>{result.data && <><div className="booking-toolbar"><p>Seat availability refreshes every 15 seconds.</p><button className="button button-outline" onClick={result.refresh}><RefreshCw size={16}/>Refresh seats</button></div>
+    <JourneyProgress step={1}/><BookingState {...result}/>{result.data && <><div className="booking-toolbar"><p>Seat availability refreshes every 15 seconds.</p><button className="button button-outline" disabled={result.loading} onClick={result.refresh}><RefreshCw size={16} aria-hidden="true"/>Refresh seats</button></div>
       {!result.data.reservable && <p role="alert" className="booking-notice error">This journey is no longer open for reservations. Please choose another train.</p>}
       <div className="seat-legend" aria-label="Seat states">{Object.entries(labels).map(([key, label]) => <span key={key}><i className={`seat-swatch ${key.toLowerCase()}`} aria-hidden="true"/>{label}</span>)}</div><p className="sr-only" aria-live="polite">{selected ? `Seat ${selected.seatNumber} selected.` : 'No seat selected.'}</p>
       <div className="booking-columns"><div className="seat-map"><p className="seat-map-note">Seat inventory view · not a physical carriage layout</p>{['ECONOMY', 'BUSINESS'].map(seatClass => <section key={seatClass} aria-label={`${seatClass === 'ECONOMY' ? 'Economy' : 'Business'} seats`}><div className="seat-class-heading"><h2>{seatClass === 'ECONOMY' ? 'Economy' : 'Business'}</h2><span>{fare(seatClass === 'ECONOMY' ? result.data.schedule.fareEconomy : result.data.schedule.fareBusiness, result.data.schedule.currency)}</span></div>

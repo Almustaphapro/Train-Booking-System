@@ -14,6 +14,7 @@ import { startPaymentWorker } from '../src/payments/payment.worker.js';
 import { parsePaymentConfig } from '../src/config/payments.js';
 
 if (process.env.NODE_ENV === 'production' || process.env.ALLOW_DB_TESTS !== 'true') throw new Error('Payment tests require ALLOW_DB_TESTS=true and a non-production database.');
+// Bulk domain scenarios have their own payment quota; rate-limits.test.js checks the production threshold.
 const db = createDatabaseClient(), tag = randomBytes(5).toString('hex'), config = parseAuthConfig();
 const users = [], cookies = [], stations = [], schedules = [], seats = [];
 let train, route, server, base; const otherServers = [], bases = {};
@@ -38,7 +39,7 @@ before(async () => {
     const schedule = await db.schedule.create({ data: { trainId: train.id, routeId: route.id, departureTime, arrivalTime: new Date(departureTime.getTime() + 5400000), fareEconomy: '2500', fareBusiness: '5000' } }); schedules.push(schedule);
     await db.scheduleSeat.createMany({ data: seats.map(seat => ({ trainId: train.id, seatId: seat.id, scheduleId: schedule.id, status: seat.status === 'ACTIVE' ? 'AVAILABLE' : 'BLOCKED' })) });
   }
-  server = createApp({ database: db, paymentConfig: { enabled: true, scenario: 'SUCCESS' } }).listen(0, '127.0.0.1'); await once(server, 'listening'); base = `http://127.0.0.1:${server.address().port}/api`;
+  server = createApp({ database: db, paymentRateLimits: { limit: 1000 }, paymentConfig: { enabled: true, scenario: 'SUCCESS' } }).listen(0, '127.0.0.1'); await once(server, 'listening'); base = `http://127.0.0.1:${server.address().port}/api`;
 });
 after(async () => {
   if (server) await new Promise(resolve => server.close(resolve)); for (const listener of otherServers) await new Promise(resolve => listener.close(resolve));
@@ -62,7 +63,7 @@ after(async () => {
 
 before(async () => {
   for (const scenario of ['FAILURE', 'FAIL_THEN_SUCCESS', 'DISABLED']) {
-    const listener = createApp({ database: db, paymentConfig: { enabled: scenario !== 'DISABLED', scenario: scenario === 'DISABLED' ? 'SUCCESS' : scenario } }).listen(0, '127.0.0.1');
+    const listener = createApp({ database: db, paymentRateLimits: { limit: 1000 }, paymentConfig: { enabled: scenario !== 'DISABLED', scenario: scenario === 'DISABLED' ? 'SUCCESS' : scenario } }).listen(0, '127.0.0.1');
     await once(listener, 'listening'); otherServers.push(listener); bases[scenario] = `http://127.0.0.1:${listener.address().port}/api`;
   }
 });

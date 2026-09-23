@@ -6,12 +6,12 @@ import { paymentSchema } from '../validators/payment.validators.js';
 import { initializePayment, listBookingPayments, getPayment } from '../payments/payment.service.js';
 import { createPaymentLimiter } from '../security/apiRateLimit.js';
 
-export function createPaymentRouter(getDatabase, authConfig, paymentConfig) {
+export function createPaymentRouter(getDatabase, authConfig, paymentConfig, rateLimits) {
   const router = Router();
   // Do not apply passenger authorization to unrelated /api paths.
   const guard = [authenticate(getDatabase, authConfig), authorize('PASSENGER')];
   router.use(['/payments', '/bookings/:id/payments'], (_request, response, next) => { response.set('Cache-Control', 'no-store'); next(); });
-  router.post('/bookings/:id/payments', createPaymentLimiter(), ...guard, authMutationGuard, validateBody(paymentSchema), async (request, response) => {
+  router.post('/bookings/:id/payments', ...guard, authMutationGuard, createPaymentLimiter(rateLimits), validateBody(paymentSchema), async (request, response) => {
     const data = await initializePayment(getDatabase(), request.user.id, request.params.id, request.validated, paymentConfig);
     response.status(data.replayed ? 200 : 201).json({ success: true, message: 'Demo payment request recorded. No real money will be charged.', data: { ...data, environment: 'DEMO PAYMENT ENVIRONMENT' } });
   });

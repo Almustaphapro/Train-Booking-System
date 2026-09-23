@@ -1,14 +1,15 @@
 import { useState } from 'react';
-import { AlertTriangle, CheckCircle2, ChevronLeft, ChevronRight, Clock3, XCircle } from 'lucide-react';
+import { AlertTriangle, OctagonAlert, CheckCircle2, ChevronLeft, ChevronRight, Clock3, XCircle } from 'lucide-react';
 import AdminModal from './AdminModal.jsx';
+import FeedbackState from '../common/FeedbackState.jsx';
 
 export const human = value => String(value ?? '').replaceAll('_', ' ').toLowerCase().replace(/^./, c => c.toUpperCase());
 export const money = value => new Intl.NumberFormat('en-NG', { style: 'currency', currency: 'NGN', maximumFractionDigits: 2 }).format(Number(value));
 export const when = value => value ? `${new Date(value).toLocaleString('en-GB', { timeZone: 'Africa/Lagos', dateStyle: 'medium', timeStyle: 'short' })} WAT` : '—';
-const badgeIcons = { low: CheckCircle2, active: CheckCircle2, confirmed: CheckCircle2, valid: CheckCircle2, boarded: CheckCircle2, resolved: CheckCircle2, medium: Clock3, under_review: Clock3, high: AlertTriangle, critical: AlertTriangle, dismissed: XCircle, suspended: XCircle, invalid: XCircle };
+const badgeIcons = { low: CheckCircle2, active: CheckCircle2, confirmed: CheckCircle2, paid: CheckCircle2, completed: CheckCircle2, valid: CheckCircle2, boarded: CheckCircle2, resolved: CheckCircle2, medium: Clock3, pending: Clock3, under_review: Clock3, high: AlertTriangle, critical: OctagonAlert, dismissed: XCircle, failed: XCircle, suspended: XCircle, invalid: XCircle };
 export function Badge({ value }) { const Icon = badgeIcons[String(value).toLowerCase()]; return <span className={`monitor-badge ${String(value).toLowerCase()}`} aria-label={human(value)}>{Icon && <Icon size={13} aria-hidden="true"/>}{human(value)}</span>; }
 export function LoadState({ loading, refreshing, error, refresh }) {
-  return error ? <div className="admin-state error" role="alert">{error}<button className="button button-outline" onClick={refresh}>Try again</button></div> : refreshing ? <p className="monitor-refreshing" role="status">Updating live records…</p> : loading ? <div className="admin-state" role="status">Loading live records…</div> : null;
+  return error ? <FeedbackState kind="error" title="Records couldn't be loaded" onRetry={refresh}>{error}</FeedbackState> : loading || refreshing ? <FeedbackState title={refreshing ? 'Updating live records…' : 'Loading live records…'}/> : null;
 }
 export function Pager({ data, onPage }) {
   return <div className="admin-pagination"><span>{data.total} records · Page {data.page} of {Math.max(1, data.pages)}</span><div>
